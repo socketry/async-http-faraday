@@ -64,9 +64,3 @@ module Async
 		end
 	end
 end
-
-module Faraday
-	class Adapter
-		register_middleware :async_http => Async::HTTP::Faraday::Adapter
-	end
-end
