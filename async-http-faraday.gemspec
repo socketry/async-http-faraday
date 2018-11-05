@@ -10,13 +10,11 @@ Gem::Specification.new do |spec|
 	spec.summary       = "Provides an adaptor between async-http and faraday."
 	spec.homepage      = "https://github.com/socketry/async-http"
 
-	spec.files         = `git ls-files -z`.split("\x0").reject do |f|
-		f.match(%r{^(test|spec|features)/})
-	end
+	spec.files         = [".editorconfig", ".gitignore", ".rspec", ".travis.yml", "Gemfile", "README.md", "Rakefile", "async-http-faraday.gemspec", "lib/async/http/faraday.rb", "lib/async/http/faraday/adapter.rb", "lib/async/http/faraday/version.rb"]
 	spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
 	spec.require_paths = ["lib"]
 	
-	spec.add_dependency("async-http", "~> 0.5")
+	spec.add_dependency("async-http", "~> 0.37")
 	spec.add_dependency("faraday")
 	
 	spec.add_development_dependency "async-rspec", "~> 1.2"

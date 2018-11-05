@@ -29,9 +29,9 @@ module Async
 				def call(env)
 					super
 					
-					client = HTTP::Client.new(endpoints_for(env).to_a)
+					client = HTTP::Client.new(*endpoints_for(env).to_a)
 					
-					response = client.send_request(env[:method], env[:url].request_uri, env[:request_headers], env[:body] || [])
+					response = client.send(env[:method], env[:url].request_uri, env[:request_headers], env[:body] || [])
 					
 					save_response(env, response.status, response.body, response.headers, response.reason)
 					
@@ -42,16 +42,7 @@ module Async
 					return to_enum(:endpoints_for, env) unless block_given?
 					
 					if url = env[:url]
-						port = url.port
-						port ||= url.scheme == 'https' ? 443 : 80
-						
-						endpoint = Async::IO::Endpoint.tcp(url.hostname, port)
-						
-						if url.scheme == 'https'
-							yield SecureEndpoint.new(endpoint, ssl_context: ssl_context_for(env[:ssl]))
-						else
-							yield endpoint
-						end
+						yield Async::HTTP::URLEndpoint.new(url)
 					end
 				end
 				

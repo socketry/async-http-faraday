@@ -18,37 +18,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async/http/server'
 require 'async/http/faraday'
+require 'async/http/response'
+require 'async/http/server'
+require 'async/http/url_endpoint'
 require 'async/reactor'
 
 RSpec.describe Async::HTTP::Faraday::Adapter do
-	let(:server_addresses) {[
-		Async::IO::Endpoint.tcp('127.0.0.1', 9294, reuse_port: true)
-	]}
-	
+	let(:endpoint) {
+		Async::HTTP::URLEndpoint.parse('http://127.0.0.1:9294')
+	}
+
 	it "client can get resource" do
-		server = Async::HTTP::Server.new(server_addresses)
-		
-		def server.handle_request(request, peer, address)
-				[200, {}, ["Hello World"]]
+		app = ->(request) do
+			Async::HTTP::Response[200, {}, ["Hello World"]]
 		end
-		
-		client = Async::HTTP::Client.new(server_addresses)
+
+		server = Async::HTTP::Server.new(app, endpoint)
 		
 		Async::Reactor.run do |task|
 			server_task = task.async do
 				server.run
 			end
 			
-			conn = Faraday.new(:url => 'http://127.0.0.1:9294') do |faraday|
+			conn = Faraday.new(:url => endpoint.url) do |faraday|
 				faraday.response :logger
 				faraday.adapter :async_http
 			end
 			
 			response = conn.get("/index")
 			
-			expect(response.body).to be == "Hello World"
+			expect(response.body.read).to be == "Hello World"
 			
 			server_task.stop
 		end
