@@ -48,7 +48,7 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			
 			response = conn.get("/index")
 			
-			expect(response.body.read).to be == "Hello World"
+			expect(response.body).to be == "Hello World"
 			
 			server_task.stop
 		end
