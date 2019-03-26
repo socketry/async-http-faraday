@@ -33,7 +33,7 @@ module Async
 					
 					response = client.send(env[:method], env[:url].request_uri, env[:request_headers], env[:body] || [])
 					
-					save_response(env, response.status, response.body, response.headers, response.reason)
+					save_response(env, response.status, response.body.read, response.headers, response.reason)
 					
 					@app.call env
 				end
