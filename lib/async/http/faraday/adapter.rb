@@ -33,7 +33,7 @@ module Async
 					
 					response = client.send(env[:method], env[:url].request_uri, env[:request_headers], env[:body] || [])
 					
-					save_response(env, response.status, response.body.read, response.headers, response.reason)
+					save_response(env, response.status, response.body.read, response.headers)
 					
 					@app.call env
 				end
@@ -42,7 +42,7 @@ module Async
 					return to_enum(:endpoints_for, env) unless block_given?
 					
 					if url = env[:url]
-						yield Async::HTTP::URLEndpoint.new(url)
+						yield Async::HTTP::Endpoint.new(url)
 					end
 				end
 				
