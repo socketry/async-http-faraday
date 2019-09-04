@@ -26,7 +26,7 @@ require 'async/reactor'
 
 RSpec.describe Async::HTTP::Faraday::Adapter do
 	let(:endpoint) {
-		Async::HTTP::URLEndpoint.parse('http://127.0.0.1:9294')
+		Async::HTTP::Endpoint.parse('http://127.0.0.1:9294')
 	}
 
 	it "client can get resource" do
