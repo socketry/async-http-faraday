@@ -19,9 +19,8 @@
 # THE SOFTWARE.
 
 require 'async/http/faraday'
-require 'async/http/response'
 require 'async/http/server'
-require 'async/http/url_endpoint'
+require 'async/http/endpoint'
 require 'async/reactor'
 
 RSpec.describe Async::HTTP::Faraday::Adapter do
@@ -31,7 +30,7 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 
 	it "client can get resource" do
 		app = ->(request) do
-			Async::HTTP::Response[200, {}, ["Hello World"]]
+			Protocol::HTTP::Response[200, {}, ["Hello World"]]
 		end
 
 		server = Async::HTTP::Server.new(app, endpoint)
