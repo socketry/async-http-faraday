@@ -21,7 +21,8 @@
 require 'async/http/faraday'
 require 'async/http/server'
 require 'async/http/endpoint'
-require 'async/reactor'
+
+require 'async'
 
 RSpec.describe Async::HTTP::Faraday::Adapter do
 	let(:endpoint) {
@@ -35,21 +36,34 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 
 		server = Async::HTTP::Server.new(app, endpoint)
 		
-		Async::Reactor.run do |task|
+		Async do |task|
 			server_task = task.async do
 				server.run
 			end
 			
-			conn = Faraday.new(:url => endpoint.url) do |faraday|
+			connection = Faraday.new(:url => endpoint.url) do |faraday|
 				faraday.response :logger
 				faraday.adapter :async_http
 			end
 			
-			response = conn.get("/index")
+			response = connection.get("/index")
 			
 			expect(response.body).to be == "Hello World"
 			
 			server_task.stop
+		end
+	end
+	
+	it "can get remote resource" do
+		Async do |task|
+			connection = Faraday.new(:url => "http://www.google.com") do |faraday|
+				faraday.response :logger
+				faraday.adapter :async_http
+			end
+			
+			response = connection.get("/search?q=cats")
+			
+			expect(response).to be_success
 		end
 	end
 end
