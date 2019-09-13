@@ -45,21 +45,6 @@ module Async
 						yield Async::HTTP::Endpoint.new(url)
 					end
 				end
-				
-				def ssl_context_for(options)
-					OpenSSL::SSL::SSLContext.new.tap do |context|
-						context.set_params(
-							verify_mode: options.fetch(:verify, true) ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE,
-							# cert_store: ssl_cert_store(ssl),
-							# cert: options[:client_cert],
-							# key: options[:client_key],
-							# ca_file: ssl[:ca_file],
-							# ca_path: ssl[:ca_path],
-							# verify_depth: ssl[:verify_depth],
-							# version: ssl[:version],
-						)
-					end
-				end
 			end
 		end
 	end
