@@ -32,8 +32,8 @@ module Async
 					client = HTTP::Client.new(*endpoints_for(env).to_a)
 					
 					response = client.send(env[:method], env[:url].request_uri, env[:request_headers], env[:body] || [])
-					
-					save_response(env, response.status, response.body.read, response.headers)
+
+					save_response(env, response.status, response.body && response.body.join, response.headers)
 					
 					@app.call env
 				end
