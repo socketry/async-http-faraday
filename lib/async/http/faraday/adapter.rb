@@ -36,6 +36,8 @@ module Async
 					save_response(env, response.status, response.read, response.headers)
 					
 					@app.call env
+				ensure
+					client.close if client
 				end
 				
 				def endpoints_for(env)

@@ -86,4 +86,24 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			expect(response.body).to be_nil
 		end
 	end
+
+	if RbConfig::CONFIG['host_os'] =~ /linux/
+		it 'does not leak sockets' do
+			def get_socket_count
+				`ls -l /proc/#{$$}/fd | grep socket | wc -l`.to_i
+			end
+
+			REQUEST_COUNT = 100
+
+			run_server(Protocol::HTTP::Response[204]) do
+				sockets_before = get_socket_count
+
+				REQUEST_COUNT.times { get_response(endpoint.url, '/index') }
+
+				sockets_after = get_socket_count
+
+				expect(sockets_after - sockets_before).to be < REQUEST_COUNT
+			end
+		end
+	end
 end
