@@ -25,6 +25,8 @@ require 'async/http/endpoint'
 require 'async'
 
 RSpec.describe Async::HTTP::Faraday::Adapter do
+	include_context Async::RSpec::Reactor
+
 	let(:endpoint) {
 		Async::HTTP::Endpoint.parse('http://127.0.0.1:9294')
 	}
@@ -84,27 +86,6 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			response = get_response(endpoint.url, '/index')
 
 			expect(response.body).to be_nil
-		end
-	end
-
-	if RbConfig::CONFIG['host_os'] =~ /linux/
-		it 'does not leak sockets' do
-			def get_socket_count
-				`ls -l /proc/#{$$}/fd | grep socket | wc -l`.to_i
-			end
-
-			REQUEST_COUNT = 3
-
-			run_server(Protocol::HTTP::Response[204]) do
-				# warm up
-				get_response(endpoint.url, '/index')
-
-				sockets_before = get_socket_count
-				REQUEST_COUNT.times { get_response(endpoint.url, '/index') }
-				sockets_after = get_socket_count
-
-				expect(sockets_after).to eq sockets_before
-			end
 		end
 	end
 end

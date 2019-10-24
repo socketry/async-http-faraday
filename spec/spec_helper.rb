@@ -1,4 +1,5 @@
 
+require 'async/rspec'
 require 'covered/rspec'
 
 RSpec.configure do |config|
