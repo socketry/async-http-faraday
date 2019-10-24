@@ -93,16 +93,17 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 				`ls -l /proc/#{$$}/fd | grep socket | wc -l`.to_i
 			end
 
-			REQUEST_COUNT = 100
+			REQUEST_COUNT = 3
 
 			run_server(Protocol::HTTP::Response[204]) do
+				# warm up
+				get_response(endpoint.url, '/index')
+
 				sockets_before = get_socket_count
-
 				REQUEST_COUNT.times { get_response(endpoint.url, '/index') }
-
 				sockets_after = get_socket_count
 
-				expect(sockets_after - sockets_before).to be < REQUEST_COUNT
+				expect(sockets_after).to eq sockets_before
 			end
 		end
 	end
