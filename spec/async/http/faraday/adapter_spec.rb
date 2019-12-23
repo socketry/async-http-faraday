@@ -53,6 +53,9 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 		end
 
 		connection.get(path)
+	
+	ensure
+		connection&.close
 	end
 
 	it "client can get resource" do

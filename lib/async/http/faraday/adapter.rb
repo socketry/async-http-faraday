@@ -20,32 +20,36 @@
 
 require 'faraday'
 require 'faraday/adapter'
-require 'async/http/client'
+require 'async/http/internet'
 
 module Async
 	module HTTP
 		module Faraday
+			# Detect whether we can use persistent connections:
+			PERSISTENT = ::Faraday::Connection.instance_methods.include?(:close)
+			
 			class Adapter < ::Faraday::Adapter
+				def initialize(*arguments, **options, &block)
+					super
+					
+					@internet = Async::HTTP::Internet.new
+				end
+				
+				def close
+					@internet.close
+				end
+				
 				def call(env)
 					super
 					
-					client = HTTP::Client.new(*endpoints_for(env).to_a)
+					response = @internet.call(env[:method], env[:url].to_s, env[:request_headers], env[:body])
 					
-					response = client.send(env[:method], env[:url].request_uri, env[:request_headers], env[:body] || [])
-
 					save_response(env, response.status, response.read, response.headers)
 					
-					@app.call env
+					return @app.call(env)
 				ensure
-					client.close if client
-				end
-				
-				def endpoints_for(env)
-					return to_enum(:endpoints_for, env) unless block_given?
-					
-					if url = env[:url]
-						yield Async::HTTP::Endpoint.new(url)
-					end
+					# Don't retain persistent connections unless they will eventually be closed:
+					@internet.close unless PERSISTENT
 				end
 			end
 		end
