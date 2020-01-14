@@ -91,4 +91,13 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			expect(response.body).to be_nil
 		end
 	end
+
+	it 'closes connection automatically if persistent option is set to false' do
+		run_server(Protocol::HTTP::Response[204]) do
+			Faraday.new(url: endpoint.url) do |faraday|
+				faraday.response :logger
+				faraday.adapter :async_http, persistent: false
+			end.get('/index')
+		end
+	end
 end
