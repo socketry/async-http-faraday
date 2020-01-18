@@ -29,6 +29,19 @@ module Async
 			PERSISTENT = ::Faraday::Connection.instance_methods.include?(:close)
 			
 			class Adapter < ::Faraday::Adapter
+				CONNECTION_EXCEPTIONS = [
+					Errno::EADDRNOTAVAIL,
+					Errno::ECONNABORTED,
+					Errno::ECONNREFUSED,
+					Errno::ECONNRESET,
+					Errno::EHOSTUNREACH,
+					Errno::EINVAL,
+					Errno::ENETUNREACH,
+					Errno::EPIPE,
+					IOError,
+					SocketError
+				].freeze
+
 				def initialize(*arguments, **options, &block)
 					super
 					
@@ -48,6 +61,12 @@ module Async
 					save_response(env, response.status, response.read, response.headers)
 					
 					return @app.call(env)
+				rescue Errno::ETIMEDOUT => e
+					raise ::Faraday::TimeoutError, e
+				rescue OpenSSL::SSL::SSLError => e
+					raise ::Faraday::SSLError, e
+				rescue *CONNECTION_EXCEPTIONS => e
+					raise ::Faraday::ConnectionFailed, e
 				ensure
 					# Don't retain persistent connections unless they will eventually be closed:
 					@internet.close unless @persistent
