@@ -100,4 +100,8 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			end.get('/index')
 		end
 	end
+
+	it 'wraps underlying exceptions into Faraday analogs' do
+		expect { get_response(endpoint.url, '/index') }.to raise_error(Faraday::ConnectionFailed)
+	end
 end
