@@ -25,12 +25,15 @@ require 'async/http/internet'
 module Async
 	module HTTP
 		module Faraday
+			# Detect whether we can use persistent connections:
+			PERSISTENT = ::Faraday::Connection.instance_methods.include?(:close)
+
 			class Adapter < ::Faraday::Adapter
 				def initialize(*arguments, **options, &block)
 					super
 					
 					@internet = Async::HTTP::Internet.new
-					@persistent = ::Faraday::Connection.instance_methods.include?(:close) && options.fetch(:persistent, true)
+					@persistent = PERSISTENT && options.fetch(:persistent, true)
 				end
 				
 				def close
