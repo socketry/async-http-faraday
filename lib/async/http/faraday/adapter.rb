@@ -27,7 +27,7 @@ module Async
 		module Faraday
 			# Detect whether we can use persistent connections:
 			PERSISTENT = ::Faraday::Connection.instance_methods.include?(:close)
-
+			
 			class Adapter < ::Faraday::Adapter
 				def initialize(*arguments, **options, &block)
 					super
