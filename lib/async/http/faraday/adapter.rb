@@ -43,7 +43,7 @@ module Async
 				def call(env)
 					super
 					
-					response = @internet.call(env[:method], env[:url].to_s, env[:request_headers], env[:body])
+					response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body])
 					
 					save_response(env, response.status, response.read, response.headers)
 					
