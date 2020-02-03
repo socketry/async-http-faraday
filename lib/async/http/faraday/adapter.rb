@@ -41,12 +41,17 @@ module Async
 					IOError,
 					SocketError
 				].freeze
+				TIMEOUT_EXCEPTIONS = [
+					Errno::ETIMEDOUT,
+					Async::TimeoutError
+				].freeze
 
 				def initialize(*arguments, **options, &block)
 					super
 					
 					@internet = Async::HTTP::Internet.new
 					@persistent = PERSISTENT && options.fetch(:persistent, true)
+					@timeout = options[:timeout]
 				end
 				
 				def close
@@ -56,12 +61,14 @@ module Async
 				def call(env)
 					super
 					
-					response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body])
+					with_timeout do
+						response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body] || [])
 					
-					save_response(env, response.status, response.read, response.headers)
+						save_response(env, response.status, response.read, response.headers)
+					end
 					
 					return @app.call(env)
-				rescue Errno::ETIMEDOUT => e
+				rescue *TIMEOUT_EXCEPTIONS => e
 					raise ::Faraday::TimeoutError, e
 				rescue OpenSSL::SSL::SSLError => e
 					raise ::Faraday::SSLError, e
@@ -70,6 +77,18 @@ module Async
 				ensure
 					# Don't retain persistent connections unless they will eventually be closed:
 					@internet.close unless @persistent
+				end
+
+				private
+
+				def with_timeout
+					if @timeout
+						Async::Task.current.with_timeout(@timeout) do
+							yield
+						end
+					else
+						yield
+					end
 				end
 			end
 		end
