@@ -41,10 +41,6 @@ module Async
 					IOError,
 					SocketError
 				].freeze
-				TIMEOUT_EXCEPTIONS = [
-					Errno::ETIMEDOUT,
-					Async::TimeoutError
-				].freeze
 
 				def initialize(*arguments, **options, &block)
 					super
@@ -68,7 +64,7 @@ module Async
 					end
 					
 					return @app.call(env)
-				rescue *TIMEOUT_EXCEPTIONS => e
+				rescue Errno::ETIMEDOUT => e
 					raise ::Faraday::TimeoutError, e
 				rescue OpenSSL::SSL::SSLError => e
 					raise ::Faraday::SSLError, e
@@ -83,7 +79,7 @@ module Async
 
 				def with_timeout
 					if @timeout
-						Async::Task.current.with_timeout(@timeout) do
+						Async::Task.current.with_timeout(@timeout, ::Faraday::TimeoutError) do
 							yield
 						end
 					else
