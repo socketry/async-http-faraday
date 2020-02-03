@@ -31,11 +31,14 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 		Async::HTTP::Endpoint.parse('http://127.0.0.1:9294')
 	}
 
-	def run_server(response)
+	def run_server(response = Protocol::HTTP::Response[204], response_delay: nil)
 		Async do |task|
 			begin
 				server_task = task.async do
-					app = ->(_) { response }
+					app = Proc.new do
+						task.sleep(response_delay) if response_delay
+						response
+					end
 					Async::HTTP::Server.new(app, endpoint).run
 				end
 
@@ -46,10 +49,10 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 		end.wait
 	end
 
-	def get_response(url, path)
+	def get_response(url = endpoint.url, path = '/index', adapter_options: {})
 		connection = Faraday.new(url: url) do |faraday|
 			faraday.response :logger
-			faraday.adapter :async_http
+			faraday.adapter :async_http, adapter_options
 		end
 
 		connection.get(path)
@@ -60,9 +63,7 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 
 	it "client can get resource" do
 		run_server(Protocol::HTTP::Response[200, {}, ['Hello World']]) do
-			response = get_response(endpoint.url, '/index')
-		
-			expect(response.body).to eq 'Hello World'
+			expect(get_response.body).to eq 'Hello World'
 		end
 	end
 	
@@ -78,26 +79,34 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 		large_response_size = 65536
 
 		run_server(Protocol::HTTP::Response[200, {}, ['.' * large_response_size]]) do
-			response = get_response(endpoint.url, '/index')
-
-			expect(response.body.size).to eq large_response_size
+			expect(get_response.body.size).to eq large_response_size
 		end
 	end
 
 	it 'properly handles no content responses' do
 		run_server(Protocol::HTTP::Response[204]) do
-			response = get_response(endpoint.url, '/index')
-
-			expect(response.body).to be_nil
+			expect(get_response.body).to be_nil
 		end
 	end
 
 	it 'closes connection automatically if persistent option is set to false' do
-		run_server(Protocol::HTTP::Response[204]) do
-			Faraday.new(url: endpoint.url) do |faraday|
-				faraday.response :logger
-				faraday.adapter :async_http, persistent: false
-			end.get('/index')
+		run_server do
+			expect do
+				get_response(adapter_options: { persistent: false })
+			end.not_to raise_error
+		end
+	end
+
+	it 'raises an exception if request times out' do
+		delay = 0.01
+
+		run_server(response_delay: delay) do
+			expect do
+				get_response(adapter_options: { timeout: delay / 2 })
+			end.to raise_error(Faraday::TimeoutError)
+			expect do
+				get_response(adapter_options: { timeout: delay * 2 })
+			end.not_to raise_error
 		end
 	end
 
