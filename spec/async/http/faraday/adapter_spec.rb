@@ -24,6 +24,8 @@ require 'async/http/endpoint'
 
 require 'async'
 
+require 'vcr_helper'
+
 RSpec.describe Async::HTTP::Faraday::Adapter do
 	include_context Async::RSpec::Reactor
 
@@ -67,11 +69,13 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 		end
 	end
 	
-	it "can get remote resource" do
+	it 'can get remote resource' do
 		Async do
-			response = get_response('http://www.google.com', '/search?q=cats')
-			
-			expect(response).to be_success
+			VCR.use_cassette('remote') do
+				response = get_response('http://www.google.com', '/search?q=cats')
+
+				expect(response).to be_success
+			end
 		end
 	end
 
