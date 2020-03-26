@@ -26,6 +26,7 @@ Faraday.default_adapter = :async_http
 Async do
 	pp TestAsync.fetch_topics_async
 ensure
+	# This line is fairly essential if you intend to exit from the async block.
 	Faraday.default_connection.close
 end
 
