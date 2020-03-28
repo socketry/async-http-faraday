@@ -38,7 +38,7 @@ Faraday.default_adapter = :async_http
 
 # Per connection:
 conn = Faraday.new(...) do |faraday|
-	faraday.adapter :async_http
+  faraday.adapter :async_http
 end
 ```
 
@@ -46,9 +46,14 @@ Here is how you make a request:
 
 ```ruby
 Async::Reactor.run do
-	response = conn.get("/index")
+  conn.get "/index"
+ensure
+  # This line is fairly essential if you intend to exit from the async block.
+  conn.close
 end
 ```
+
+Please check `examples` folder for more examples.
 
 ## Contributing
 
