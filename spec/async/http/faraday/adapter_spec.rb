@@ -26,41 +26,45 @@ require 'async'
 
 RSpec.describe Async::HTTP::Faraday::Adapter do
 	include_context Async::RSpec::Reactor
-
+	
 	let(:endpoint) {
 		Async::HTTP::Endpoint.parse('http://127.0.0.1:9294')
 	}
-
+	
 	def run_server(response = Protocol::HTTP::Response[204], response_delay: nil)
 		Async do |task|
 			begin
 				server_task = task.async do
 					app = Proc.new do
-						task.sleep(response_delay) if response_delay
+						if response_delay
+							task.sleep(response_delay)
+						end
+						
 						response
 					end
+					
 					Async::HTTP::Server.new(app, endpoint).run
 				end
-
+				
 				yield
 			ensure
 				server_task.stop
 			end
 		end.wait
 	end
-
+	
 	def get_response(url = endpoint.url, path = '/index', adapter_options: {})
 		connection = Faraday.new(url: url) do |faraday|
 			faraday.response :logger
 			faraday.adapter :async_http, adapter_options
 		end
-
+		
 		connection.get(path)
 	
 	ensure
 		connection&.close
 	end
-
+	
 	it "client can get resource" do
 		run_server(Protocol::HTTP::Response[200, {}, ['Hello World']]) do
 			expect(get_response.body).to eq 'Hello World'
@@ -74,21 +78,21 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			expect(response).to be_success
 		end
 	end
-
+	
 	it 'properly handles chunked responses' do
 		large_response_size = 65536
-
+		
 		run_server(Protocol::HTTP::Response[200, {}, ['.' * large_response_size]]) do
 			expect(get_response.body.size).to eq large_response_size
 		end
 	end
-
+	
 	it 'properly handles no content responses' do
 		run_server(Protocol::HTTP::Response[204]) do
 			expect(get_response.body).to be_nil
 		end
 	end
-
+	
 	it 'closes connection automatically if persistent option is set to false' do
 		run_server do
 			expect do
@@ -96,20 +100,21 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			end.not_to raise_error
 		end
 	end
-
+	
 	it 'raises an exception if request times out' do
-		delay = 0.01
-
+		delay = 0.1
+		
 		run_server(response_delay: delay) do
 			expect do
-				get_response(adapter_options: { timeout: delay / 2 })
+				get_response(adapter_options: {timeout: delay / 2})
 			end.to raise_error(Faraday::TimeoutError)
+			
 			expect do
-				get_response(adapter_options: { timeout: delay * 2 })
+				get_response(adapter_options: {timeout: delay * 2})
 			end.not_to raise_error
 		end
 	end
-
+	
 	it 'wraps underlying exceptions into Faraday analogs' do
 		expect { get_response(endpoint.url, '/index') }.to raise_error(Faraday::ConnectionFailed)
 	end

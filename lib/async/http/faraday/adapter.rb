@@ -64,7 +64,7 @@ module Async
 					end
 					
 					return @app.call(env)
-				rescue Errno::ETIMEDOUT => e
+				rescue Errno::ETIMEDOUT, Async::TimeoutError => e
 					raise ::Faraday::TimeoutError, e
 				rescue OpenSSL::SSL::SSLError => e
 					raise ::Faraday::SSLError, e
@@ -77,9 +77,9 @@ module Async
 
 				private
 
-				def with_timeout
+				def with_timeout(task: Async::Task.current)
 					if @timeout
-						Async::Task.current.with_timeout(@timeout, ::Faraday::TimeoutError) do
+						task.with_timeout(@timeout, ::Faraday::TimeoutError) do
 							yield
 						end
 					else
