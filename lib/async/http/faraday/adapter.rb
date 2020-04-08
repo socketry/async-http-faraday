@@ -20,7 +20,10 @@
 
 require 'faraday'
 require 'faraday/adapter'
+require 'kernel/sync'
 require 'async/http/internet'
+
+require_relative 'agent'
 
 module Async
 	module HTTP
@@ -57,10 +60,20 @@ module Async
 				def call(env)
 					super
 					
-					with_timeout do
-						response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body] || [])
+					parent = Async::Task.current?
 					
-						save_response(env, response.status, response.read, response.headers)
+					Sync do
+						with_timeout do
+							response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body] || [])
+						
+							save_response(env, response.status, response.read, response.headers)
+						end
+					ensure
+						# If we are the top level task, even if we are persistent, we must close the connection:
+						if parent.nil? || !@persistent
+							Async.logger.debug(self) {"Closing persistent connections."}
+							@internet.close
+						end
 					end
 					
 					return @app.call(env)
@@ -70,9 +83,6 @@ module Async
 					raise ::Faraday::SSLError, e
 				rescue *CONNECTION_EXCEPTIONS => e
 					raise ::Faraday::ConnectionFailed, e
-				ensure
-					# Don't retain persistent connections unless they will eventually be closed:
-					@internet.close unless @persistent
 				end
 
 				private

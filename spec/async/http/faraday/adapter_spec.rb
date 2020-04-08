@@ -71,6 +71,12 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 		end
 	end
 	
+	it "works without top level reactor" do
+		response = get_response("https://www.google.com", "/search?q=ruby")
+		
+		expect(response).to be_success
+	end
+	
 	it "can get remote resource" do
 		Async do
 			response = get_response('http://www.google.com', '/search?q=cats')
