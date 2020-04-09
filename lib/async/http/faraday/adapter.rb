@@ -22,6 +22,7 @@ require 'faraday'
 require 'faraday/adapter'
 require 'kernel/sync'
 require 'async/http/internet'
+require 'async/clock'
 
 require_relative 'agent'
 
@@ -61,16 +62,26 @@ module Async
 					super
 					
 					parent = Async::Task.current?
+					response = nil
 					
 					Sync do
 						with_timeout do
+							start = Async::Clock.now
+							Async.logger.info(self) {"#{env[:method]} -> #{env[:url]}"}
 							response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body] || [])
 							
 							save_response(env, response.status, response.read, response.headers)
+							Async.logger.info(self) {"#{env[:method]} <- #{env[:url]} (#{(Async::Clock.now - start).round(3)}s)"}
 						end
 					ensure
 						# If we are the top level task, even if we are persistent, we must close the connection:
 						if parent.nil? || !@persistent
+							# if response.connection.count == 1
+							# 	puts "*" * 30
+							# 	puts "#{env[:method]} #{env[:url]} #{response.connection.count}"
+							# 	puts caller
+							# end
+							
 							@internet.close
 						end
 					end
