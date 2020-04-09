@@ -65,13 +65,12 @@ module Async
 					Sync do
 						with_timeout do
 							response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body] || [])
-						
+							
 							save_response(env, response.status, response.read, response.headers)
 						end
 					ensure
 						# If we are the top level task, even if we are persistent, we must close the connection:
 						if parent.nil? || !@persistent
-							Async.logger.debug(self) {"Closing persistent connections."}
 							@internet.close
 						end
 					end
