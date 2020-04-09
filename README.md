@@ -2,7 +2,7 @@
 
 Provides an adaptor for [Faraday] to perform async HTTP requests. If you are designing a new library, you should probably just use `Async::HTTP::Client` directly.
 
-[![Build Status](https://secure.travis-ci.org/socketry/async-http-faraday.svg)](http://travis-ci.org/socketry/async-http-faraday)
+[![Build Status](https://travis-ci.com/socketry/async-http-faraday.svg?branch=master)](https://travis-ci.com/socketry/async-http-faraday)
 [![Code Climate](https://codeclimate.com/github/socketry/async-http-faraday.svg)](https://codeclimate.com/github/socketry/async-http-faraday)
 [![Coverage Status](https://coveralls.io/repos/socketry/async-http-faraday/badge.svg)](https://coveralls.io/r/socketry/async-http-faraday)
 
