@@ -50,6 +50,14 @@ Async::Reactor.run do
 end
 ```
 
+### Default
+
+To make this the default adaptor:
+
+```ruby
+require 'async/http/faraday/default'
+```
+
 ## Contributing
 
 1. Fork it
