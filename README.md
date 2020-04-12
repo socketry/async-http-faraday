@@ -45,7 +45,7 @@ end
 Here is how you make a request:
 
 ```ruby
-Async::Reactor.run do
+Async do
 	response = conn.get("/index")
 end
 ```
