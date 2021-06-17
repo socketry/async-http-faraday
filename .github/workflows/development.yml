@@ -11,7 +11,7 @@ jobs:
       matrix:
         os:
           - ubuntu
-          - macos
+          # - macos
         
         ruby:
           - "2.6"
@@ -32,6 +32,10 @@ jobs:
             ruby: head
             experimental: true
     
+    services:
+      squid:
+        image: sameersbn/squid
+    
     steps:
     - uses: actions/checkout@v2
     - uses: ruby/setup-ruby@v1
@@ -41,4 +45,6 @@ jobs:
     
     - name: Run tests
       timeout-minutes: 5
+      env:
+        PROXY_URL: "http://localhost:3128"
       run: ${{matrix.env}} bundle exec rspec

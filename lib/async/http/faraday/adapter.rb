@@ -60,8 +60,29 @@ module Async
 					super
 					
 					Sync do
+						endpoint = Endpoint.parse(env[:url].to_s)
+						
+						if proxy = env[:proxy]
+							proxy_endpoint = Endpoint.parse(proxy)
+							client = @internet.client_for(proxy_endpoint).proxied_endpoint(endpoint)
+						else
+							client = @internet.client_for(endpoint)
+						end
+						
+						if body = env[:body]
+							body = Body::Buffered.wrap(body)
+						end
+						
+						if headers = env[:request_headers]
+							headers = ::Protocol::HTTP::Headers[headers]
+						end
+						
+						method = env[:method].to_s.upcase
+						
+						request = ::Protocol::HTTP::Request.new(endpoint.scheme, endpoint.authority, method, endpoint.path, nil, headers, body)
+						
 						with_timeout do
-							response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body] || [])
+							response = client.call(request)
 							
 							save_response(env, response.status, response.read, response.headers)
 						end
