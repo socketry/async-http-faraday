@@ -52,7 +52,6 @@ module Async
 					@timeout = timeout
 					
 					@clients = {}
-					@proxy_clients = {}
 					
 					@options = options
 				end
@@ -80,23 +79,20 @@ module Async
 				end
 				
 				def proxy_client_for(proxy_endpoint, endpoint)
-					key = host_key(endpoint)
+					key = [host_key(proxy_endpoint), host_key(endpoint)]
 					
-					@proxy_clients.fetch(key) do
+					@clients.fetch(key) do
 						client = client_for(proxy_endpoint)
-						@proxy_clients[key] = client.proxied_client(endpoint)
+						@clients[key] = client.proxied_client(endpoint)
 					end
 				end
 				
 				def close
 					# The order of operations here is to avoid a race condition between iterating over clients (#close may yield) and creating new clients.
-					proxy_clients = @proxy_clients.values
 					clients = @clients.values
 					
-					@proxy_clients.clear
 					@clients.clear
 					
-					proxy_clients.each(&:close)
 					clients.each(&:close)
 				end
 				
