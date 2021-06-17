@@ -34,7 +34,7 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	}
 	
 	def run_server(response = Protocol::HTTP::Response[204], response_delay: nil)
-		Async do |task|
+		Sync do |task|
 			begin
 				server_task = task.async do
 					app = Proc.new do
@@ -52,11 +52,11 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			ensure
 				server_task.stop
 			end
-		end.wait
+		end
 	end
 	
 	def get_response(url = endpoint.url, path = '/index', adapter_options: {})
-		connection = Faraday.new(url: url) do |faraday|
+		connection = Faraday.new(url) do |faraday|
 			faraday.response :logger
 			faraday.adapter :async_http, **adapter_options
 		end
@@ -80,7 +80,7 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	end
 	
 	it "can get remote resource" do
-		Async do
+		Sync do
 			response = get_response('http://www.google.com', '/search?q=cats')
 			
 			expect(response).to be_success
@@ -98,14 +98,6 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	it 'properly handles no content responses' do
 		run_server(Protocol::HTTP::Response[204]) do
 			expect(get_response.body).to be_nil
-		end
-	end
-	
-	it 'closes connection automatically if persistent option is set to false' do
-		run_server do
-			expect do
-				get_response(adapter_options: { persistent: false })
-			end.not_to raise_error
 		end
 	end
 	
