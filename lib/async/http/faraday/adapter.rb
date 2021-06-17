@@ -23,7 +23,9 @@
 require 'faraday'
 require 'faraday/adapter'
 require 'kernel/sync'
-require 'async/http/internet'
+
+require 'async/http/client'
+require 'async/http/proxy'
 
 require_relative 'agent'
 
@@ -44,40 +46,82 @@ module Async
 					SocketError
 				].freeze
 				
-				def initialize(*arguments, **options, &block)
-					super
+				def initialize(*arguments, timeout: nil, **options, &block)
+					super(*arguments, **options)
 					
-					@internet = Async::HTTP::Internet.new
-					@persistent = options.fetch(:persistent, true)
-					@timeout = options[:timeout]
+					@timeout = timeout
+					
+					@clients = {}
+					@proxy_clients = {}
+					
+					@options = options
+				end
+				
+				def make_client(endpoint)
+					Client.new(endpoint, **@connection_options)
+				end
+				
+				def host_key(endpoint)
+					url = endpoint.url.dup
+					
+					url.path = ""
+					url.fragment = nil
+					url.query = nil
+					
+					return url
+				end
+				
+				def client_for(endpoint)
+					key = host_key(endpoint)
+					
+					@clients.fetch(key) do
+						@clients[key] = make_client(endpoint)
+					end
+				end
+				
+				def proxy_client_for(proxy_endpoint, endpoint)
+					key = host_key(endpoint)
+					
+					@proxy_clients.fetch(key) do
+						client = client_for(proxy_endpoint)
+						@proxy_clients[key] = client.proxied_client(endpoint)
+					end
 				end
 				
 				def close
-					@internet.close
+					# The order of operations here is to avoid a race condition between iterating over clients (#close may yield) and creating new clients.
+					proxy_clients = @proxy_clients.values
+					clients = @clients.values
+					
+					@proxy_clients.clear
+					@clients.clear
+					
+					proxy_clients.each(&:close)
+					clients.each(&:close)
 				end
 				
 				def call(env)
 					super
 					
 					Sync do
-						endpoint = Endpoint.parse(env[:url].to_s)
+						endpoint = Endpoint.new(env.url)
 						
-						if proxy = env[:proxy]
-							proxy_endpoint = Endpoint.parse(proxy)
-							client = @internet.client_for(proxy_endpoint).proxied_endpoint(endpoint)
+						if proxy = env.request.proxy
+							proxy_endpoint = Endpoint.new(proxy.uri)
+							client = self.proxy_client_for(proxy_endpoint, endpoint)
 						else
-							client = @internet.client_for(endpoint)
+							client = self.client_for(endpoint)
 						end
 						
-						if body = env[:body]
+						if body = env.body
 							body = Body::Buffered.wrap(body)
 						end
 						
-						if headers = env[:request_headers]
+						if headers = env.request_headers
 							headers = ::Protocol::HTTP::Headers[headers]
 						end
 						
-						method = env[:method].to_s.upcase
+						method = env.method.upcase
 						
 						request = ::Protocol::HTTP::Request.new(endpoint.scheme, endpoint.authority, method, endpoint.path, nil, headers, body)
 						

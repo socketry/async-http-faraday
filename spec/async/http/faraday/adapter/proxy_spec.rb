@@ -30,16 +30,16 @@ RSpec.describe Async::HTTP::Faraday::Adapter, if: ENV.key?('PROXY_URL') do
 	include_context Async::RSpec::Reactor
 	
 	def get_response(url = endpoint.url, path = '/index', adapter_options: {})
-		connection = Faraday.new(url: url) do |faraday|
+		connection = Faraday.new(url, proxy: ENV['PROXY_URL']) do |faraday|
 			faraday.response :logger
 			faraday.adapter :async_http, **adapter_options
 		end
 		
-		connection.get(path, proxy: ENV['PROXY_URL'])
+		connection.get(path)
 	end
 	
 	it "can get remote resource via proxy" do
-		Async do
+		Sync do
 			response = get_response('http://www.google.com', '/search?q=cats')
 			
 			expect(response).to be_success
