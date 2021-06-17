@@ -30,9 +30,6 @@ require_relative 'agent'
 module Async
 	module HTTP
 		module Faraday
-			# Detect whether we can use persistent connections:
-			PERSISTENT = ::Faraday::Connection.instance_methods.include?(:close)
-			
 			class Adapter < ::Faraday::Adapter
 				CONNECTION_EXCEPTIONS = [
 					Errno::EADDRNOTAVAIL,
@@ -46,12 +43,12 @@ module Async
 					IOError,
 					SocketError
 				].freeze
-
+				
 				def initialize(*arguments, **options, &block)
 					super
 					
 					@internet = Async::HTTP::Internet.new
-					@persistent = PERSISTENT && options.fetch(:persistent, true)
+					@persistent = options.fetch(:persistent, true)
 					@timeout = options[:timeout]
 				end
 				
@@ -62,18 +59,11 @@ module Async
 				def call(env)
 					super
 					
-					parent = Async::Task.current?
-					
 					Sync do
 						with_timeout do
 							response = @internet.call(env[:method].to_s.upcase, env[:url].to_s, env[:request_headers], env[:body] || [])
 							
 							save_response(env, response.status, response.read, response.headers)
-						end
-					ensure
-						# If we are the top level task, even if we are persistent, we must close the connection:
-						if parent.nil? || !@persistent
-							@internet.close
 						end
 					end
 					
@@ -85,9 +75,9 @@ module Async
 				rescue *CONNECTION_EXCEPTIONS => e
 					raise ::Faraday::ConnectionFailed, e
 				end
-
+				
 				private
-
+				
 				def with_timeout(task: Async::Task.current)
 					if @timeout
 						task.with_timeout(@timeout, ::Faraday::TimeoutError) do
