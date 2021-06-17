@@ -58,7 +58,7 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	def get_response(url = endpoint.url, path = '/index', adapter_options: {})
 		connection = Faraday.new(url: url) do |faraday|
 			faraday.response :logger
-			faraday.adapter :async_http, adapter_options
+			faraday.adapter :async_http, **adapter_options
 		end
 		
 		connection.get(path)
