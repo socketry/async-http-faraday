@@ -1,36 +1,30 @@
 # Async::HTTP::Faraday
 
-Provides an adaptor for [Faraday] to perform async HTTP requests. If you are designing a new library, you should probably just use `Async::HTTP::Client` directly.
+Provides an adaptor for [Faraday](https://github.com/lostisland/faraday) to perform async HTTP requests. If you are designing a new library, you should probably just use `Async::HTTP::Client` directly.
 
-[![Build Status](https://travis-ci.com/socketry/async-http-faraday.svg?branch=master)](https://travis-ci.com/socketry/async-http-faraday)
-[![Code Climate](https://codeclimate.com/github/socketry/async-http-faraday.svg)](https://codeclimate.com/github/socketry/async-http-faraday)
-[![Coverage Status](https://coveralls.io/repos/socketry/async-http-faraday/badge.svg)](https://coveralls.io/r/socketry/async-http-faraday)
-
-[async]: https://github.com/socketry/async
-[async-io]: https://github.com/socketry/async-io
-[Faraday]: https://github.com/lostisland/faraday
+[![Development Status](https://github.com/socketry/async-http-faraday/workflows/Development/badge.svg)](https://github.com/socketry/async-http-faraday/actions?workflow=Development)
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-```ruby
+``` ruby
 gem 'async-http-faraday'
 ```
 
 And then execute:
 
-	$ bundle
+    $ bundle
 
 Or install it yourself as:
 
-	$ gem install async-http-faraday
+    $ gem install async-http-faraday
 
 ## Usage
 
 Here is how you set faraday to use `Async::HTTP`:
 
-```ruby
+``` ruby
 require 'async/http/faraday'
 
 # Make it the global default:
@@ -44,7 +38,7 @@ end
 
 Here is how you make a request:
 
-```ruby
+``` ruby
 Async do
 	response = conn.get("/index")
 end
@@ -54,17 +48,17 @@ end
 
 To make this the default adaptor:
 
-```ruby
+``` ruby
 require 'async/http/faraday/default'
 ```
 
 ## Contributing
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+1.  Fork it
+2.  Create your feature branch (`git checkout -b my-new-feature`)
+3.  Commit your changes (`git commit -am 'Add some feature'`)
+4.  Push to the branch (`git push origin my-new-feature`)
+5.  Create new Pull Request
 
 ## License
 
