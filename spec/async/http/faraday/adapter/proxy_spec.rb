@@ -40,7 +40,7 @@ RSpec.describe Async::HTTP::Faraday::Adapter, if: ENV.key?('PROXY_URL') do
 	
 	it "can get remote resource via proxy" do
 		Sync do
-			response = get_response('http://www.google.com', '/search?q=cats')
+			response = get_response('https://www.google.com', '/search?q=cats')
 			
 			expect(response).to be_success
 		end
