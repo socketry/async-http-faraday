@@ -11,7 +11,7 @@ jobs:
       matrix:
         os:
           - ubuntu
-          # - macos
+          - macos
         
         ruby:
           - "2.6"
@@ -31,12 +31,9 @@ jobs:
           - os: ubuntu
             ruby: head
             experimental: true
-    
-    services:
-      squid:
-        image: sameersbn/squid
-        ports:
-          - 3128:3128
+          - os: ubuntu
+            ruby: "2.7"
+            proxy: true
     
     steps:
     - uses: actions/checkout@v2
@@ -45,8 +42,14 @@ jobs:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
     
-    - name: Run tests
-      timeout-minutes: 5
+    - name: Prepare squid
+      if: matrix.proxy
       env:
         PROXY_URL: "http://localhost:3128"
+      run: |
+        sudo apt-get install squid
+        sudo systemctl start squid
+    
+    - name: Run tests
+      timeout-minutes: 5
       run: ${{matrix.env}} bundle exec rspec
