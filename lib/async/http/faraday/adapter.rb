@@ -117,7 +117,7 @@ module Async
 							headers = ::Protocol::HTTP::Headers[headers]
 						end
 						
-						method = env.method.upcase.to_s
+						method = env.method.to_s.upcase
 						
 						request = ::Protocol::HTTP::Request.new(endpoint.scheme, endpoint.authority, method, endpoint.path, nil, headers, body)
 						
