@@ -124,7 +124,7 @@ module Async
 						with_timeout do
 							response = client.call(request)
 							
-							save_response(env, response.status, response.read, response.headers)
+							save_response(env, response.status, encoded_body(response), response.headers)
 						end
 					end
 					
@@ -147,6 +147,32 @@ module Async
 					else
 						yield
 					end
+				end
+				
+				def encoded_body(response)
+					body = response.read
+					return body if body.nil?
+					content_type = response.headers['content-type']
+					return body unless content_type
+					params = extract_type_parameters(content_type)
+					if charset = params['charset']
+						body = body.dup if body.frozen?
+						body.force_encoding(charset)
+					end
+					body
+				rescue ArgumentError
+					nil
+				end
+				
+				def extract_type_parameters(content_type)
+					result = {}
+					list = content_type.split(';')
+					list.shift
+					list.each do |param|
+						key, value = *param.split('=', 2)
+						result[key.strip] = value.strip
+					end
+					result
 				end
 			end
 		end

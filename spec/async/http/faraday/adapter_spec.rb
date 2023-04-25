@@ -72,6 +72,15 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			expect(get_response.body).to eq 'Hello World'
 		end
 	end
+
+  it "client can get responce with respect to Content-Type encoding" do
+    run_server(Protocol::HTTP::Response[200, {'Content-Type' => 'text/html; charset=utf-8'}, ['こんにちは世界']]) do
+      body = get_response.body
+      expect(body.encoding).to eq Encoding::UTF_8
+      expect(body).to eq 'こんにちは世界'
+    end
+  end
+
 	
 	it "works without top level reactor" do
 		response = get_response("https://www.google.com", "/search?q=ruby")
