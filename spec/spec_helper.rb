@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# Released under the MIT License.
+# Copyright, 2018-2020, by Samuel Williams.
+# Copyright, 2019, by Igor Sidorov.
+
 require 'async/rspec'
 require 'covered/rspec'
 

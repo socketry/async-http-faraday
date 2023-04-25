@@ -2,7 +2,7 @@
 
 Provides an adaptor for [Faraday](https://github.com/lostisland/faraday) to perform async HTTP requests. If you are designing a new library, you should probably just use `Async::HTTP::Client` directly.
 
-[![Development Status](https://github.com/socketry/async-http-faraday/workflows/Development/badge.svg)](https://github.com/socketry/async-http-faraday/actions?workflow=Development)
+[![Development Status](https://github.com/socketry/async-http-faraday/workflows/Test/badge.svg)](https://github.com/socketry/async-http-faraday/actions?workflow=Test)
 
 ## Installation
 
