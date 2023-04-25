@@ -15,8 +15,6 @@ require 'kernel/sync'
 require 'async/http/client'
 require 'async/http/proxy'
 
-require_relative 'agent'
-
 module Async
 	module HTTP
 		module Faraday
