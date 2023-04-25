@@ -153,14 +153,26 @@ module Async
 					body = response.read
 					return body if body.nil?
 					content_type = response.headers['content-type']
-					/\bcharset=\s*(.+?)\s*(;|$)/.match(content_type) do |match|
-						content_charset = Encoding.find(match.captures.first)
+					return body unless content_type
+					params = type_params(content_type)
+					if charset = params['charset']
 						body = body.dup if body.frozen?
-						body.force_encoding(content_charset)
-					rescue ArgumentError
-						nil
+						body.force_encoding(charset)
 					end
 					body
+				rescue ArgumentError
+					nil
+				end
+				
+				def type_params(content_type)
+					result = {}
+					list = content_type.split(';')
+					list.shift
+					list.each do |param|
+						k, v = *param.split('=', 2)
+						result[k.strip] = v.strip
+					end
+					result
 				end
 			end
 		end
