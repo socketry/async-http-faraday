@@ -154,7 +154,7 @@ module Async
 					return body if body.nil?
 					content_type = response.headers['content-type']
 					return body unless content_type
-					params = type_params(content_type)
+					params = extract_type_parameters(content_type)
 					if charset = params['charset']
 						body = body.dup if body.frozen?
 						body.force_encoding(charset)
@@ -164,13 +164,13 @@ module Async
 					nil
 				end
 				
-				def type_params(content_type)
+				def extract_type_parameters(content_type)
 					result = {}
 					list = content_type.split(';')
 					list.shift
 					list.each do |param|
-						k, v = *param.split('=', 2)
-						result[k.strip] = v.strip
+						key, value = *param.split('=', 2)
+						result[key.strip] = value.strip
 					end
 					result
 				end
