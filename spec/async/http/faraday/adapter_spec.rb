@@ -83,6 +83,13 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 		end
 	end
 	
+	it "works without initial url and trailing slash (compatiblisity to the original behaviour)" do
+		response = Faraday.new do |faraday|
+			faraday.adapter :async_http
+		end.get 'https://www.google.com'
+		expect(response).to be_success
+	end
+	
 	it 'properly handles chunked responses' do
 		large_response_size = 65536
 		

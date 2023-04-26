@@ -85,6 +85,9 @@ module Async
 				def call(env)
 					super
 					
+					# for compatibility with the default adapter
+					env.url.path = '/' if env.url.path.empty?
+					
 					Sync do
 						endpoint = Endpoint.new(env.url)
 						
