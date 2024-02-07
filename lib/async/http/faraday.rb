@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2020, by Samuel Williams.
+# Copyright, 2018-2024, by Samuel Williams.
 
 require_relative "faraday/version"
 require_relative "faraday/adapter"
