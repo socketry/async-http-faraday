@@ -18,6 +18,23 @@ require 'async/http/proxy'
 module Async
 	module HTTP
 		module Faraday
+			class BodyWrapper < ::Protocol::HTTP::Body::Readable
+				def initialize(body, block_size: 4096)
+					@body = body
+					@block_size = block_size
+				end
+				
+				def close(error = nil)
+					@body.close if @body.respond_to?(:close)
+				ensure
+					super
+				end
+				
+				def read
+					@body.read(@block_size)
+				end
+			end
+			
 			class Adapter < ::Faraday::Adapter
 				CONNECTION_EXCEPTIONS = [
 					Errno::EADDRNOTAVAIL,
@@ -99,7 +116,10 @@ module Async
 						end
 						
 						if body = env.body
-							body = Body::Buffered.wrap(body)
+							# We need to wrap the body in a Readable object so that it can be read in chunks:
+							# Faraday's body only responds to `#read`.
+							# body = ::Protocol::HTTP::Body::Buffered.wrap(body)
+							body = BodyWrapper.new(body)
 						end
 						
 						if headers = env.request_headers
