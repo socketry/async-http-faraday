@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2021, by Samuel Williams.
+# Copyright, 2018-2024, by Samuel Williams.
 
 source 'https://rubygems.org'
 
@@ -18,3 +18,8 @@ group :test do
 	
 	gem "faraday-multipart"
 end
+
+# Moved Development Dependencies
+gem "async-rspec", "~> 1.2"
+gem "covered"
+gem "rspec", "~> 3.6"
