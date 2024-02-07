@@ -13,12 +13,15 @@ require 'async/http/endpoint'
 
 require 'async'
 
+require 'faraday'
+require 'faraday/multipart'
+
 RSpec.describe Async::HTTP::Faraday::Adapter do
 	include_context Async::RSpec::Reactor
 	
-	let(:endpoint) {
+	let(:endpoint) do
 		Async::HTTP::Endpoint.parse('http://127.0.0.1:9294')
-	}
+	end
 	
 	def run_server(response = Protocol::HTTP::Response[204], response_delay: nil)
 		Sync do |task|
@@ -59,15 +62,14 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 			expect(get_response.body).to eq 'Hello World'
 		end
 	end
-
-  it "client can get responce with respect to Content-Type encoding" do
-    run_server(Protocol::HTTP::Response[200, {'Content-Type' => 'text/html; charset=utf-8'}, ['こんにちは世界']]) do
-      body = get_response.body
-      expect(body.encoding).to eq Encoding::UTF_8
-      expect(body).to eq 'こんにちは世界'
-    end
-  end
-
+	
+	it "client can get responce with respect to Content-Type encoding" do
+		run_server(Protocol::HTTP::Response[200, {'Content-Type' => 'text/html; charset=utf-8'}, ['こんにちは世界']]) do
+			body = get_response.body
+			expect(body.encoding).to eq Encoding::UTF_8
+			expect(body).to eq 'こんにちは世界'
+		end
+	end
 	
 	it "works without top level reactor" do
 		response = get_response("https://www.google.com", "/search?q=ruby")
@@ -120,5 +122,16 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	
 	it 'wraps underlying exceptions into Faraday analogs' do
 		expect { get_response(endpoint.url, '/index') }.to raise_error(Faraday::ConnectionFailed)
+	end
+	
+	it 'can use multi-part post body' do
+		connection = Faraday.new do |builder|
+			builder.request :multipart
+			builder.adapter :async_http
+		end
+		
+		connection.post("https://httpbin.org/post") do |request|
+			request.body = { "file" => Faraday::Multipart::FilePart.new(StringIO.new("file content"), "text/plain", "file.txt") }
+		end
 	end
 end
