@@ -6,7 +6,7 @@
 module Async
 	module HTTP
 		module Faraday
-			VERSION = "0.13.0"
+			VERSION = "0.13.1"
 		end
 	end
 end
