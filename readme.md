@@ -31,8 +31,8 @@ require 'async/http/faraday'
 Faraday.default_adapter = :async_http
 
 # Per connection:
-conn = Faraday.new(...) do |faraday|
-	faraday.adapter :async_http
+connection = Faraday.new(...) do |builder|
+	builder.adapter :async_http
 end
 ```
 
@@ -40,7 +40,7 @@ Here is how you make a request:
 
 ``` ruby
 Async do
-	response = conn.get("/index")
+	response = connection.get("/index")
 end
 ```
 

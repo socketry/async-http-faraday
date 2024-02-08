@@ -18,7 +18,7 @@ require 'async/http/proxy'
 module Async
 	module HTTP
 		module Faraday
-			class BodyWrapper < ::Protocol::HTTP::Body::Readable
+			class BodyReadWrapper < ::Protocol::HTTP::Body::Readable
 				def initialize(body, block_size: 4096)
 					@body = body
 					@block_size = block_size
@@ -118,8 +118,11 @@ module Async
 						if body = env.body
 							# We need to wrap the body in a Readable object so that it can be read in chunks:
 							# Faraday's body only responds to `#read`.
-							# body = ::Protocol::HTTP::Body::Buffered.wrap(body)
-							body = BodyWrapper.new(body)
+							if body.respond_to?(:read)
+								body = BodyReadWrapper.new(body)
+							else
+								body = ::Protocol::HTTP::Body::Buffered.wrap(body)
+							end
 						end
 						
 						if headers = env.request_headers

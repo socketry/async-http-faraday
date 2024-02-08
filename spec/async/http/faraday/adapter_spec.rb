@@ -46,13 +46,11 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	end
 	
 	def get_response(url = endpoint.url, path = '/index', adapter_options: {})
-		connection = Faraday.new(url) do |faraday|
-			faraday.response :logger
-			faraday.adapter :async_http, **adapter_options
+		connection = Faraday.new(url) do |builder|
+			builder.adapter :async_http, **adapter_options
 		end
 		
 		connection.get(path)
-	
 	ensure
 		connection&.close
 	end
@@ -86,8 +84,8 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	end
 	
 	it "works without initial url and trailing slash (compatiblisity to the original behaviour)" do
-		response = Faraday.new do |faraday|
-			faraday.adapter :async_http
+		response = Faraday.new do |builder|
+			builder.adapter :async_http
 		end.get 'https://www.google.com'
 		expect(response).to be_success
 	end
@@ -122,6 +120,31 @@ RSpec.describe Async::HTTP::Faraday::Adapter do
 	
 	it 'wraps underlying exceptions into Faraday analogs' do
 		expect { get_response(endpoint.url, '/index') }.to raise_error(Faraday::ConnectionFailed)
+	end
+	
+	def post_response(body, url = endpoint.url, path = '/index', adapter_options: {})
+		connection = Faraday.new(url) do |builder|
+			builder.request :url_encoded
+			builder.adapter :async_http, **adapter_options
+		end
+		
+		connection.post(path) do |request|
+			request.body = body
+		end
+	ensure
+		connection&.close
+	end
+	
+	it 'can use string body' do
+		run_server(Protocol::HTTP::Response[200, {}, ['Hello World']]) do
+			expect(post_response('Hello World').body).to be == 'Hello World'
+		end
+	end
+	
+	it 'can use url-encoded body' do
+		run_server(Protocol::HTTP::Response[200, {}, ['Hello World']]) do
+			expect(post_response({text: 'Hello World'}).body).to be == 'Hello World'
+		end
 	end
 	
 	it 'can use multi-part post body' do
