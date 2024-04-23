@@ -10,6 +10,8 @@ gemspec
 group :maintenance, optional: true do
 	gem "bake-modernize"
 	gem "bake-gem"
+	
+	gem "utopia-project"
 end
 
 group :test do
