@@ -13,13 +13,14 @@ group :maintenance, optional: true do
 end
 
 group :test do
+	gem "sus"
+	gem "covered"
+	
 	gem "bake-test"
 	gem "bake-test-external"
 	
 	gem "faraday-multipart"
+	
+	gem "sus-fixtures-async"
+	gem "sus-fixtures-async-http"
 end
-
-# Moved Development Dependencies
-gem "async-rspec", "~> 1.2"
-gem "covered"
-gem "rspec", "~> 3.6"

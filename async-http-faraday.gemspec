@@ -15,9 +15,14 @@ Gem::Specification.new do |spec|
 	
 	spec.homepage = "https://github.com/socketry/async-http"
 	
+	spec.metadata = {
+		"documentation_uri" => "https://socketry.github.io/async-http/",
+		"source_code_uri" => "https://github.com/socketry/async-http.git",
+	}
+	
 	spec.files = Dir.glob(['{examples,lib}/**/*', '*.md'], File::FNM_DOTMATCH, base: __dir__)
 	
-	spec.required_ruby_version = ">= 3.0"
+	spec.required_ruby_version = ">= 3.1"
 	
 	spec.add_dependency "async-http", "~> 0.42"
 	spec.add_dependency "faraday"
