@@ -5,4 +5,5 @@
 
 require_relative 'adapter'
 
+# Set the default adapter to use Async::HTTP.
 ::Faraday.default_adapter = :async_http

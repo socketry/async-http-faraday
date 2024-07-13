@@ -7,3 +7,13 @@ require_relative "faraday/version"
 require_relative "faraday/adapter"
 
 Faraday::Adapter.register_middleware :async_http => Async::HTTP::Faraday::Adapter
+
+# @namespace
+module Async
+	# @namespace
+	module HTTP
+		# @namespace
+		module Faraday
+		end
+	end
+end
