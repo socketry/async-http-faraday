@@ -18,24 +18,35 @@ require 'async/http/proxy'
 module Async
 	module HTTP
 		module Faraday
+			# This is a simple wrapper around Faraday's body that allows it to be read in chunks.
 			class BodyReadWrapper < ::Protocol::HTTP::Body::Readable
+				# Create a new wrapper around the given body.
+				#
+				# The body must respond to `#read` and `#close` and is often an instance of `IO` or `Faraday::Multipart::CompositeReadIO`.
+				#
+				# @parameter body [Interface(:read)] The input body to wrap.
+				# @parameter block_size [Integer] The size of the blocks to read from the body.
 				def initialize(body, block_size: 4096)
 					@body = body
 					@block_size = block_size
 				end
 				
+				# Close the body if possible.
 				def close(error = nil)
 					@body.close if @body.respond_to?(:close)
 				ensure
 					super
 				end
 				
+				# Read from the body in chunks.
 				def read
 					@body.read(@block_size)
 				end
 			end
 			
+			# An adapter that allows Faraday to use Async::HTTP as the underlying HTTP client.
 			class Adapter < ::Faraday::Adapter
+				# The exceptions that are considered connection errors and result in a `Faraday::ConnectionFailed` exception.
 				CONNECTION_EXCEPTIONS = [
 					Errno::EADDRNOTAVAIL,
 					Errno::ECONNABORTED,
@@ -49,6 +60,10 @@ module Async
 					SocketError
 				].freeze
 				
+				# Create a Farady compatible adapter.
+				# 
+				# @parameter timeout [Integer] The timeout for requests.
+				# @parameter options [Hash] Additional options to pass to the underlying Async::HTTP::Client.
 				def initialize(*arguments, timeout: nil, **options, &block)
 					super(*arguments, **options)
 					
@@ -59,10 +74,18 @@ module Async
 					@options = options
 				end
 				
+				# Make a new client for the given endpoint.
+				#
+				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to create the client for.
 				def make_client(endpoint)
 					Client.new(endpoint, **@connection_options)
 				end
 				
+				# Get the host key for the given endpoint.
+				#
+				# This is used to cache clients for the same host.
+				#
+				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the host key for.
 				def host_key(endpoint)
 					url = endpoint.url.dup
 					
@@ -73,6 +96,9 @@ module Async
 					return url
 				end
 				
+				# Get a client for the given endpoint. If a client already exists for the host, it will be reused.
+				#
+				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
 				def client_for(endpoint)
 					key = host_key(endpoint)
 					
@@ -81,6 +107,10 @@ module Async
 					end
 				end
 				
+				# Get a client for the given proxy endpoint and endpoint. If a client already exists for the host, it will be reused.
+				#
+				# @parameter proxy_endpoint [IO::Endpoint::Generic] The proxy endpoint to use.
+				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
 				def proxy_client_for(proxy_endpoint, endpoint)
 					key = [host_key(proxy_endpoint), host_key(endpoint)]
 					
@@ -90,6 +120,7 @@ module Async
 					end
 				end
 				
+				# Close all clients.
 				def close
 					# The order of operations here is to avoid a race condition between iterating over clients (#close may yield) and creating new clients.
 					clients = @clients.values
@@ -99,6 +130,12 @@ module Async
 					clients.each(&:close)
 				end
 				
+				# Make a request using the adapter.
+				#
+				# @parameter env [Faraday::Env] The environment to make the request in.
+				# @raises [Faraday::TimeoutError] If the request times out.
+				# @raises [Faraday::SSLError] If there is an SSL error.
+				# @raises [Faraday::ConnectionFailed] If there is a connection error.
 				def call(env)
 					super
 					
