@@ -153,7 +153,7 @@ module Async
 						end
 						
 						if body = env.body
-							# We need to wrap the body in a Readable object so that it can be read in chunks:
+							# We need to ensure the body is wrapped in a Readable object so that it can be read in chunks:
 							# Faraday's body only responds to `#read`.
 							if body.is_a?(::Protocol::HTTP::Body::Readable)
 								# Good to go

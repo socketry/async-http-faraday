@@ -129,13 +129,13 @@ describe Async::HTTP::Faraday::Adapter do
 			end
 
 			it "can use a ::Protocol::HTTP::Body::Readable body" do
-				readable = ::Protocol::HTTP::Body::File.new(File.open(__FILE__, 'r'), 0..128)
+				readable = ::Protocol::HTTP::Body::File.new(File.open(__FILE__, 'r'), 0...128)
 
 				response = Faraday.new do |builder|
 					builder.adapter :async_http
 				end.post(bound_url, readable)
 
-				expect(response.body).to be == File.read(__FILE__, 129)
+				expect(response.body).to be == File.read(__FILE__, 128)
 			end
 		end
 	end
