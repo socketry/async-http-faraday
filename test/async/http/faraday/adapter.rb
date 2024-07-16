@@ -15,6 +15,8 @@ require 'sus/fixtures/async/http/server_context'
 require 'faraday'
 require 'faraday/multipart'
 
+require 'protocol/http/body/file'
+
 describe Async::HTTP::Faraday::Adapter do
 	def get_response(url = bound_url, path = '/index', adapter_options: {})
 		connection = Faraday.new(url) do |builder|
@@ -124,6 +126,16 @@ describe Async::HTTP::Faraday::Adapter do
 				end.post(bound_url, text: 'Hello World')
 				
 				expect(response.body).to be == 'text=Hello+World'
+			end
+
+			it "can use a ::Protocol::HTTP::Body::Readable body" do
+				readable = ::Protocol::HTTP::Body::File.new(File.open(__FILE__, 'r'), 0...128)
+
+				response = Faraday.new do |builder|
+					builder.adapter :async_http
+				end.post(bound_url, readable)
+
+				expect(response.body).to be == File.read(__FILE__, 128)
 			end
 		end
 	end
