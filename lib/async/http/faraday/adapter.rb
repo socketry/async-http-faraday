@@ -16,6 +16,8 @@ require 'kernel/sync'
 require 'async/http/client'
 require 'async/http/proxy'
 
+require_relative 'client_cache'
+
 module Async
 	module HTTP
 		module Faraday
@@ -65,70 +67,17 @@ module Async
 				# 
 				# @parameter timeout [Integer] The timeout for requests.
 				# @parameter options [Hash] Additional options to pass to the underlying Async::HTTP::Client.
-				def initialize(*arguments, timeout: nil, **options, &block)
-					super(*arguments, **options)
+				def initialize(...)
+					super
 					
-					@timeout = timeout
-					
-					@clients = {}
-					
-					@options = options
-				end
-				
-				# Make a new client for the given endpoint.
-				#
-				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to create the client for.
-				def make_client(endpoint)
-					Client.new(endpoint, **@connection_options)
-				end
-				
-				# Get the host key for the given endpoint.
-				#
-				# This is used to cache clients for the same host.
-				#
-				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the host key for.
-				def host_key(endpoint)
-					url = endpoint.url.dup
-					
-					url.path = ""
-					url.fragment = nil
-					url.query = nil
-					
-					return url
-				end
-				
-				# Get a client for the given endpoint. If a client already exists for the host, it will be reused.
-				#
-				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
-				def client_for(endpoint)
-					key = host_key(endpoint)
-					
-					@clients.fetch(key) do
-						@clients[key] = make_client(endpoint)
-					end
-				end
-				
-				# Get a client for the given proxy endpoint and endpoint. If a client already exists for the host, it will be reused.
-				#
-				# @parameter proxy_endpoint [IO::Endpoint::Generic] The proxy endpoint to use.
-				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
-				def proxy_client_for(proxy_endpoint, endpoint)
-					key = [host_key(proxy_endpoint), host_key(endpoint)]
-					
-					@clients.fetch(key) do
-						client = client_for(proxy_endpoint)
-						@clients[key] = client.proxied_client(endpoint)
-					end
+					@timeout = @connection_options.delete(:timeout)
+					@clients = ClientCache.new(**@connection_options)
 				end
 				
 				# Close all clients.
 				def close
 					# The order of operations here is to avoid a race condition between iterating over clients (#close may yield) and creating new clients.
-					clients = @clients.values
-					
-					@clients.clear
-					
-					clients.each(&:close)
+					@clients.close
 				end
 				
 				# Make a request using the adapter.
@@ -148,9 +97,9 @@ module Async
 						
 						if proxy = env.request.proxy
 							proxy_endpoint = Endpoint.new(proxy.uri)
-							client = self.proxy_client_for(proxy_endpoint, endpoint)
+							client = @clients.proxy_client_for(proxy_endpoint, endpoint)
 						else
-							client = self.client_for(endpoint)
+							client = @clients.client_for(endpoint)
 						end
 						
 						if body = env.body
