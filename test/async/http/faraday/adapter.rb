@@ -6,6 +6,7 @@
 # Copyright, 2019, by Denis Talakevich.
 # Copyright, 2019-2020, by Igor Sidorov.
 # Copyright, 2023, by Genki Takiuchi.
+# Copyright, 2024, by Jacob Frautschi.
 
 require 'async/http/faraday'
 

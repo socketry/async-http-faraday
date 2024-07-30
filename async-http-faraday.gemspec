@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 	spec.version = Async::HTTP::Faraday::VERSION
 	
 	spec.summary = "Provides an adaptor between async-http and faraday."
-	spec.authors = ["Samuel Williams", "Igor Sidorov", "Andreas Garnaes", "Genki Takiuchi", "Olle Jonsson", "Benoit Daloze", "Denis Talakevich", "Flavio Fernandes"]
+	spec.authors = ["Samuel Williams", "Igor Sidorov", "Andreas Garnaes", "Genki Takiuchi", "Olle Jonsson", "Benoit Daloze", "Denis Talakevich", "Flavio Fernandes", "Jacob Frautschi"]
 	spec.license = "MIT"
 	
 	spec.cert_chain  = ['release.cert']
