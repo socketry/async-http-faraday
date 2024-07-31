@@ -1,56 +1,17 @@
 # Async::HTTP::Faraday
 
-Provides an adaptor for [Faraday](https://github.com/lostisland/faraday) to perform async HTTP requests. If you are designing a new library, you should probably just use `Async::HTTP::Client` directly.
+Provides an adaptor for [Faraday](https://github.com/lostisland/faraday) to perform async HTTP requests. If you are designing a new library, you should probably just use `Async::HTTP::Client` directly. However, for existing projects and libraries that use Faraday as an abstract interface, this can be a drop-in replacement to improve concurrency. It should be noted that the default `Net::HTTP` adapter works perfectly okay with Async, however it does not use persistent connections by default.
+
+  - Persistent connections by default.
+  - Supports HTTP/1 and HTTP/2 (and HTTP/3 in the future).
 
 [![Development Status](https://github.com/socketry/async-http-faraday/workflows/Test/badge.svg)](https://github.com/socketry/async-http-faraday/actions?workflow=Test)
 
-## Installation
-
-Add this line to your application's Gemfile:
-
-``` ruby
-gem 'async-http-faraday'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install async-http-faraday
-
 ## Usage
 
-Here is how you set faraday to use `Async::HTTP`:
+Please see the [project documentation](https://socketry.github.io/async-http/) for more details.
 
-``` ruby
-require 'async/http/faraday'
-
-# Make it the global default:
-Faraday.default_adapter = :async_http
-
-# Per connection:
-connection = Faraday.new(...) do |builder|
-	builder.adapter :async_http
-end
-```
-
-Here is how you make a request:
-
-``` ruby
-Async do
-	response = connection.get("/index")
-end
-```
-
-### Default
-
-To make this the default adaptor:
-
-``` ruby
-require 'async/http/faraday/default'
-```
+  - [Getting Started](https://socketry.github.io/async-http/guides/getting-started/index) - This guide explains how to use use `Async::HTTP::Faraday` as a drop-in replacement for improved concurrency.
 
 ## Contributing
 

@@ -19,16 +19,23 @@ require 'async/http/proxy'
 module Async
 	module HTTP
 		module Faraday
+			# An interface for creating and managing HTTP clients.
 			class Clients
+				# Create a new instance of the class.
 				def self.call(...)
 					new(...)
 				end
 				
+				# Create a new interface for managing HTTP clients.
+				#
+				# @parameter options [Hash] The options to create the clients with.
+				# @parameter block [Proc] An optional block to call with the client before it is used.
 				def initialize(**options, &block)
 					@options = options
 					@block = block
 				end
 				
+				# Close all clients.
 				def close
 				end
 				
@@ -41,9 +48,10 @@ module Async
 					return client
 				end
 				
-				# Get a client for the given endpoint. If a client already exists for the host, it will be reused.
+				# Get a client for the given endpoint.
 				#
 				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
+				# @yields {|client| ...} A client for the given endpoint.
 				def with_client(endpoint)
 					client = make_client(endpoint)
 					
@@ -52,10 +60,11 @@ module Async
 					client&.close
 				end
 				
-				# Get a client for the given proxy endpoint and endpoint. If a client already exists for the host, it will be reused.
+				# Get a client for the given proxy endpoint and endpoint.
 				#
 				# @parameter proxy_endpoint [IO::Endpoint::Generic] The proxy endpoint to use.
 				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
+				# @yields {|client| ...} A client for the given endpoint.
 				def with_proxied_client(proxy_endpoint, endpoint)
 					client = client_for(proxy_endpoint)
 					proxied_client = client.proxied_client(endpoint)
@@ -67,13 +76,16 @@ module Async
 				end
 			end
 			
+			# An interface for creating and managing persistent HTTP clients.
 			class PersistentClients < Clients
+				# Create a new instance of the class.
 				def initialize(...)
 					super
 					
 					@clients = {}
 				end
 				
+				# Close all clients.
 				def close
 					super
 					
@@ -83,32 +95,9 @@ module Async
 					clients.each(&:close)
 				end
 				
-				# Get the host key for the given endpoint.
-				#
-				# This is used to cache clients for the same host.
-				#
-				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the host key for.
-				def host_key(endpoint)
-					url = endpoint.url.dup
-					
-					url.path = ""
-					url.fragment = nil
-					url.query = nil
-					
-					return url
-				end
-				
 				# Get a client for the given endpoint. If a client already exists for the host, it will be reused.
 				#
-				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
-				def client_for(endpoint)
-					key = host_key(endpoint)
-					
-					fetch(key) do
-						make_client
-					end
-				end
-				
+				# @yields {|client| ...} A client for the given endpoint.
 				def with_client(endpoint)
 					yield make_client(endpoint)
 				end
@@ -127,16 +116,39 @@ module Async
 					yield proxied_client
 				end
 				
-				protected
+				private
 				
 				def fetch(key)
 					@clients.fetch(key) do
 						@clients[key] = yield
 					end
 				end
+				
+				def host_key(endpoint)
+					url = endpoint.url.dup
+					
+					url.path = ""
+					url.fragment = nil
+					url.query = nil
+					
+					return url
+				end
+				
+				def client_for(endpoint)
+					key = host_key(endpoint)
+					
+					fetch(key) do
+						make_client
+					end
+				end
 			end
 			
+			# An interface for creating and managing per-thread persistent HTTP clients.
 			class PerThreadPersistentClients
+				# Create a new instance of the class.
+				#
+				# @parameter options [Hash] The options to create the clients with.
+				# @parameter block [Proc] An optional block to call with the client before it is used.
 				def initialize(**options, &block)
 					@options = options
 					@block = block
@@ -144,14 +156,28 @@ module Async
 					@key = :"#{self.class}_#{object_id}"
 				end
 				
+				# Get a client for the given endpoint. If a client already exists for the host, it will be reused.
+				#
+				# The client instance will be will be cached per-thread.
+				#
+				# @yields {|client| ...} A client for the given endpoint.
 				def with_client(endpoint, &block)
 					clients.with_client(endpoint, &block)
 				end
 				
+				# Get a client for the given proxy endpoint and endpoint. If a client already exists for the host, it will be reused.
+				#
+				# The client instance will be will be cached per-thread.
+				#
+				# @parameter proxy_endpoint [IO::Endpoint::Generic] The proxy endpoint to use.
+				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
 				def with_proxied_client(proxy_endpoint, endpoint, &block)
 					clients.with_proxied_client(proxy_endpoint, endpoint, &block)
 				end
 				
+				# Close all clients.
+				#
+				# This will close all clients associated with all threads.
 				def close
 					Thread.list.each do |thread|
 						if clients = thread[@key]
@@ -162,7 +188,7 @@ module Async
 					end
 				end
 				
-				protected
+				private
 				
 				def make_clients
 					PersistentClients.new(**@options, &@block)
