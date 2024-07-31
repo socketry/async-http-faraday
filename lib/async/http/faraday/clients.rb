@@ -164,8 +164,14 @@ module Async
 				
 				protected
 				
+				def make_clients
+					PersistentClients.new(**@options, &@block)
+				end
+				
 				def clients
-					Thread.current[@key] ||= PersistentClients.new(**@options, &@block)
+					thread = Thread.current
+					
+					return thread.thread_variable_get(@key) || thread.thread_variable_set(@key, make_clients)
 				end
 			end
 		end
