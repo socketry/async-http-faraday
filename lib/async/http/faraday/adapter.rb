@@ -16,7 +16,7 @@ require 'kernel/sync'
 require 'async/http/client'
 require 'async/http/proxy'
 
-require_relative 'client_cache'
+require_relative 'clients'
 
 module Async
 	module HTTP
@@ -71,7 +71,12 @@ module Async
 					super
 					
 					@timeout = @connection_options.delete(:timeout)
-					@clients = ClientCache.new(**@connection_options)
+					
+					if clients = @connection_options.delete(:clients)
+						@clients = clients.call(**@connection_options, &@config_block)
+					else
+						@clients = PersistentClients.new(**@connection_options, &@config_block)
+					end
 				end
 				
 				# Close all clients.
@@ -89,19 +94,10 @@ module Async
 				def call(env)
 					super
 					
-					# for compatibility with the default adapter
+					# For compatibility with the default adapter:
 					env.url.path = '/' if env.url.path.empty?
 					
-					Sync do
-						endpoint = Endpoint.new(env.url)
-						
-						if proxy = env.request.proxy
-							proxy_endpoint = Endpoint.new(proxy.uri)
-							client = @clients.proxy_client_for(proxy_endpoint, endpoint)
-						else
-							client = @clients.client_for(endpoint)
-						end
-						
+					with_client(env) do |endpoint, client|
 						if body = env.body
 							# We need to ensure the body is wrapped in a Readable object so that it can be read in chunks:
 							# Faraday's body only responds to `#read`.
@@ -139,6 +135,24 @@ module Async
 				end
 				
 				private
+				
+				def with_client(env)
+					Sync do
+						endpoint = Endpoint.new(env.url)
+						
+						if proxy = env.request.proxy
+							proxy_endpoint = Endpoint.new(proxy.uri)
+							
+							@clients.with_proxied_client(proxy_endpoint, endpoint) do |client|
+								yield endpoint, client
+							end
+						else
+							@clients.with_client(endpoint) do |client|
+								yield endpoint, client
+							end
+						end
+					end
+				end
 				
 				def with_timeout(task: Async::Task.current)
 					if @timeout

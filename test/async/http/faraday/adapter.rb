@@ -139,6 +139,22 @@ describe Async::HTTP::Faraday::Adapter do
 				expect(response.body).to be == File.read(__FILE__, 128)
 			end
 		end
+		
+		with "a config block" do
+			it "invokes the config block" do
+				config_block_invoked = false
+				
+				adapter = Faraday.new do |builder|
+					builder.adapter :async_http do |client|
+						config_block_invoked = true
+					end
+				end
+				
+				adapter.get(bound_url)
+				
+				expect(config_block_invoked).to be == true
+			end
+		end
 	end
 	
 	with "a remote http server" do
