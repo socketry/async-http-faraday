@@ -60,7 +60,7 @@ module Async
 				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to get the client for.
 				# @yields {|client| ...} A client for the given endpoint.
 				def with_proxied_client(proxy_endpoint, endpoint)
-					client = client_for(proxy_endpoint)
+					client = make_client(proxy_endpoint)
 					proxied_client = client.proxied_client(endpoint)
 					
 					yield proxied_client 
@@ -89,6 +89,17 @@ module Async
 					clients.each(&:close)
 				end
 				
+				# Lookup or create a client for the given endpoint.
+				#
+				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to create the client for.
+				def make_client(endpoint)
+					key = host_key(endpoint)
+					
+					fetch(key) do
+						super
+					end
+				end
+				
 				# Get a client for the given endpoint. If a client already exists for the host, it will be reused.
 				#
 				# @yields {|client| ...} A client for the given endpoint.
@@ -104,7 +115,7 @@ module Async
 					key = [host_key(proxy_endpoint), host_key(endpoint)]
 					
 					proxied_client = fetch(key) do
-						client_for(proxy_endpoint).proxied_client(endpoint)
+						make_client(proxy_endpoint).proxied_client(endpoint)
 					end
 					
 					yield proxied_client
@@ -126,14 +137,6 @@ module Async
 					url.query = nil
 					
 					return url
-				end
-				
-				def client_for(endpoint)
-					key = host_key(endpoint)
-					
-					fetch(key) do
-						make_client
-					end
 				end
 			end
 			
