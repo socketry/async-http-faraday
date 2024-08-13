@@ -43,6 +43,25 @@ describe Async::HTTP::Faraday::Adapter do
 			it "client can get resource" do
 				expect(get_response.body).to be == 'Hello World'
 			end
+			
+			it "can make several requests on several threads" do
+				connection = Faraday.new(bound_url) do |builder|
+					builder.adapter :async_http
+				end
+				
+				threads = []
+				
+				10.times do
+					threads << Thread.new do
+						10.times do
+							response = connection.get("/index")
+							expect(response).to be(:success?)
+						end
+					end
+				end
+				
+				threads.each(&:join)
+			end
 		end
 		
 		with "utf-8 response body" do

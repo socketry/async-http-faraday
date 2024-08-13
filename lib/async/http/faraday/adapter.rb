@@ -76,7 +76,7 @@ module Async
 					if clients = @connection_options.delete(:clients)
 						@clients = clients.call(**@connection_options, &@config_block)
 					else
-						@clients = PersistentClients.new(**@connection_options, &@config_block)
+						@clients = PerThreadPersistentClients.new(**@connection_options, &@config_block)
 					end
 				end
 				
