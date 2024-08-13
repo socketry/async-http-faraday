@@ -128,14 +128,14 @@ describe Async::HTTP::Faraday::Adapter do
 				
 				expect(response.body).to be == 'text=Hello+World'
 			end
-
+			
 			it "can use a ::Protocol::HTTP::Body::Readable body" do
 				readable = ::Protocol::HTTP::Body::File.new(File.open(__FILE__, 'r'), 0...128)
-
+				
 				response = Faraday.new do |builder|
 					builder.adapter :async_http
 				end.post(bound_url, readable)
-
+				
 				expect(response.body).to be == File.read(__FILE__, 128)
 			end
 		end
@@ -153,6 +153,41 @@ describe Async::HTTP::Faraday::Adapter do
 				adapter.get(bound_url)
 				
 				expect(config_block_invoked).to be == true
+			end
+		end
+		
+		with "a streaming response" do
+			let(:app) do
+				Protocol::HTTP::Middleware.for do |request|
+					body = ::Async::HTTP::Body::Writable.new
+					
+					Async do
+						3.times do |i|
+							body.write("chunk#{i}")
+						end
+					ensure
+						body.close
+					end
+					
+					Protocol::HTTP::Response[200, {}, body]
+				end
+			end
+			
+			it "can stream response" do
+				client = Faraday.new do |builder|
+					builder.adapter :async_http
+				end
+				
+				chunks = []
+				
+				response = client.get(bound_url) do |request|
+					request.options.on_data = proc do |chunk|
+						chunks << chunk
+					end
+				end
+				
+				expect(response.body).to be_nil
+				expect(chunks).to be == ["chunk0", "chunk1", "chunk2"]
 			end
 		end
 	end

@@ -1,13 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2024, by Samuel Williams.
-# Copyright, 2018, by Andreas Garnaes.
-# Copyright, 2019, by Denis Talakevich.
-# Copyright, 2019-2020, by Igor Sidorov.
-# Copyright, 2023, by Genki Takiuchi.
-# Copyright, 2023, by Flavio Fernandes.
-# Copyright, 2024, by Jacob Frautschi.
+# Copyright, 2024, by Samuel Williams.
 
 require 'faraday'
 require 'faraday/adapter'

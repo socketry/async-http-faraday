@@ -8,6 +8,7 @@
 # Copyright, 2023, by Genki Takiuchi.
 # Copyright, 2023, by Flavio Fernandes.
 # Copyright, 2024, by Jacob Frautschi.
+# Copyright, 2024, by Korbin Hoffman.
 
 require 'faraday'
 require 'faraday/adapter'
@@ -119,9 +120,23 @@ module Async
 						request = ::Protocol::HTTP::Request.new(endpoint.scheme, endpoint.authority, method, endpoint.path, nil, headers, body)
 						
 						with_timeout do
-							response = client.call(request)
-							
-							save_response(env, response.status, encoded_body(response), response.headers)
+							if env.stream_response?
+								response = env.stream_response do |&on_data|
+									response = client.call(request)
+									
+									response.each do |chunk|
+										on_data.call(chunk)
+									end
+									
+									response
+								end
+								
+								save_response(env, response.status, nil, response.headers)
+							else
+								response = client.call(request)
+								
+								save_response(env, response.status, encoded_body(response), response.headers)
+							end
 						end
 					end
 					

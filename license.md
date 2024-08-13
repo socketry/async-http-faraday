@@ -9,6 +9,7 @@ Copyright, 2020, by Benoit Daloze.
 Copyright, 2023, by Genki Takiuchi.  
 Copyright, 2023, by Flavio Fernandes.  
 Copyright, 2024, by Jacob Frautschi.  
+Copyright, 2024, by Korbin Hoffman.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
