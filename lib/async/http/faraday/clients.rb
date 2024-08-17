@@ -38,8 +38,8 @@ module Async
 				# @parameter endpoint [IO::Endpoint::Generic] The endpoint to create the client for.
 				def make_client(endpoint)
 					client = Client.new(endpoint, **@options)
-					@block&.call(client)
-					return client
+					
+					return @block&.call(client) || client
 				end
 				
 				# Get a client for the given endpoint.

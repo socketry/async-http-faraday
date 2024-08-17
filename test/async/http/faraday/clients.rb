@@ -4,9 +4,25 @@
 # Copyright, 2024, by Samuel Williams.
 
 require 'async/http/faraday/clients'
+require 'async/http/middleware/location_redirector'
 
 describe Async::HTTP::Faraday::PersistentClients do
 	let(:clients) {subject.new}
+	
+	with "a block" do
+		let(:clients) do
+			subject.new do |client|
+				Async::HTTP::Middleware::LocationRedirector.new(client)
+			end
+		end
+		
+		it "can wrap the client with middleware" do
+			endpoint = Async::HTTP::Endpoint.parse('http://example.com')
+			client = clients.make_client(endpoint)
+			
+			expect(client).to be_a(Async::HTTP::Middleware::LocationRedirector)
+		end
+	end
 	
 	with "#make_client" do
 		it "caches the client" do

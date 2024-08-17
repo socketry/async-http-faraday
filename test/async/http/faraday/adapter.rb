@@ -165,7 +165,7 @@ describe Async::HTTP::Faraday::Adapter do
 				
 				adapter = Faraday.new do |builder|
 					builder.adapter :async_http do |client|
-						config_block_invoked = true
+						config_block_invoked = true; client
 					end
 				end
 				
