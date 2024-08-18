@@ -15,3 +15,24 @@ Faraday.new do |builder|
 	end
 end
 ```
+
+# v0.17.0
+
+## Per-thread Client Cache
+
+The default adapter now uses a per-thread client cache internally, to improve compatibility with existing code that shares a single `Faraday::Connection` instance across multiple threads.
+
+```ruby
+adapter = Faraday.new do |builder|
+	builder.adapter :async_http
+end
+
+3.times do
+	Thread.new do
+		Async do
+			# Each thread has it's own client cache.
+			adapter.get('http://example.com')
+		end
+	end
+end
+```
