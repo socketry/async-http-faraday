@@ -13,6 +13,18 @@ Please see the [project documentation](https://socketry.github.io/async-http/) f
 
   - [Getting Started](https://socketry.github.io/async-http/guides/getting-started/index) - This guide explains how to use use `Async::HTTP::Faraday` as a drop-in replacement for improved concurrency.
 
+## Releases
+
+Please see the [project changes](https://socketry.github.io/async-http//changes/index) for all releases.
+
+### v0.18.0
+
+  - [Config Block](https://socketry.github.io/async-http/changes/index#config-block)
+
+### v0.17.0
+
+  - [Per-thread Client Cache](https://socketry.github.io/async-http/changes/index#per-thread-client-cache)
+
 ## Contributing
 
 We welcome contributions to this project.
