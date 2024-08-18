@@ -13,10 +13,11 @@ Gem::Specification.new do |spec|
 	spec.cert_chain  = ['release.cert']
 	spec.signing_key = File.expand_path('~/.gem/release.pem')
 	
-	spec.homepage = "https://github.com/socketry/async-http"
+	spec.homepage = "https://github.com/socketry/async-http-faraday"
 	
 	spec.metadata = {
-		"documentation_uri" => "https://socketry.github.io/async-http/",
+		"documentation_uri" => "https://socketry.github.io/async-http-faraday/",
+		"funding_uri" => "https://github.com/sponsors/ioquatix",
 		"source_code_uri" => "https://github.com/socketry/async-http.git",
 	}
 	
