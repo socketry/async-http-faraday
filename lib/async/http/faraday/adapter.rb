@@ -12,6 +12,8 @@
 
 require 'faraday'
 require 'faraday/adapter'
+
+require 'async/barrier'
 require 'kernel/sync'
 
 require 'async/http/client'
@@ -48,8 +50,41 @@ module Async
 				end
 			end
 			
+			class ParallelManager
+				def initialize(options = {})
+					@options = options
+					@barrier = nil
+				end
+				
+				def run
+					raise NotImplementedError, "Please update your Faraday version!"
+				end
+				
+				def async(&block)
+					@barrier.async(&block)
+				end
+				
+				def execute(&block)
+					Sync do
+						@barrier = Async::Barrier.new
+						
+						yield
+						
+						@barrier.wait
+					ensure
+						@barrier&.stop
+					end
+				end
+			end
+			
 			# An adapter that allows Faraday to use Async::HTTP as the underlying HTTP client.
 			class Adapter < ::Faraday::Adapter
+				self.supports_parallel = true
+				
+				def self.setup_parallel_manager(**options)
+					ParallelManager.new(options)
+				end
+				
 				# The exceptions that are considered connection errors and result in a `Faraday::ConnectionFailed` exception.
 				CONNECTION_EXCEPTIONS = [
 					Errno::EADDRNOTAVAIL,
@@ -98,6 +133,23 @@ module Async
 					# For compatibility with the default adapter:
 					env.url.path = '/' if env.url.path.empty?
 					
+					if parallel_manager = env.parallel_manager
+						parallel_manager.async do
+							perform_request(env)
+							
+							# Do I need this line?
+							env.response.finish(env)
+						end
+					else
+						perform_request(env)
+					end
+					
+					return env.response
+				end
+				
+				private
+				
+				def perform_request(env)
 					with_client(env) do |endpoint, client|
 						if body = env.body
 							# We need to ensure the body is wrapped in a Readable object so that it can be read in chunks:
@@ -148,8 +200,6 @@ module Async
 				rescue *CONNECTION_EXCEPTIONS => e
 					raise ::Faraday::ConnectionFailed, e
 				end
-				
-				private
 				
 				def with_client(env)
 					Sync do
