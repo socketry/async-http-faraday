@@ -136,15 +136,13 @@ module Async
 					if parallel_manager = env.parallel_manager
 						parallel_manager.async do
 							perform_request(env)
-							
-							# Do I need this line?
 							env.response.finish(env)
 						end
 					else
 						perform_request(env)
 					end
 					
-					return env.response
+					@app.call(env)
 				end
 				
 				private

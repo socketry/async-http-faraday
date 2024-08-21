@@ -30,7 +30,7 @@ describe Async::HTTP::Faraday::Adapter do
 			adapter.in_parallel do
 				response1 = adapter.get("/index")
 				response2 = adapter.get("/index")
-				resposne3 = adapter.get("/index")
+				response3 = adapter.get("/index")
 			end
 			
 			expect(response1.body).to be == 'Hello World'
