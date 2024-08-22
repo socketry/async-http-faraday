@@ -7,8 +7,6 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem "faraday", git: "https://github.com/lostisland/faraday.git", branch: "mg/parallel-manager-execute"
-
 group :maintenance, optional: true do
 	gem "bake-modernize"
 	gem "bake-gem"

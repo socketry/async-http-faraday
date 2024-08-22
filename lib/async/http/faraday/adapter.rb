@@ -63,7 +63,11 @@ module Async
 				end
 				
 				def async(&block)
-					@barrier.async(&block)
+					if @barrier
+						@barrier.async(&block)
+					else
+						Sync(&block)
+					end
 				end
 				
 				def execute(&block)
