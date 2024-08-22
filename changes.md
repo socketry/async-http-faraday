@@ -1,6 +1,46 @@
-# v0.18.0
+# Changes
 
-## Config Block
+## v0.19.0
+
+### Support `in_parallel`
+
+The adapter now supports the `in_parallel` method, which allows multiple requests to be made concurrently.
+
+```ruby
+adapter = Faraday.new(bound_url) do |builder|
+	builder.adapter :async_http
+end
+
+response1 = response2 = response3 = nil
+
+adapter.in_parallel do
+	response1 = adapter.get("/index")
+	response2 = adapter.get("/index")
+	response3 = adapter.get("/index")
+end
+
+puts response1.body # => "Hello World"
+puts response2.body # => "Hello World"
+puts response3.body # => "Hello World"
+```
+
+This is primarily for compatibility with existing code. If you are designing a new library, you should just use `Async` directly:
+
+```ruby
+Async do
+	response1 = Async{adapter.get("/index")}
+	response2 = Async{adapter.get("/index")}
+	response3 = Async{adapter.get("/index")}
+	
+	puts response1.wait.body # => "Hello World"
+	puts response2.wait.body # => "Hello World"
+	puts response3.wait.body # => "Hello World"
+end
+```
+
+## v0.18.0
+
+### Config Block
 
 The `config_block` provided to the adapter must now return `nil`, `client` or a middleware wrapper around `client`.
 
@@ -16,9 +56,9 @@ Faraday.new do |builder|
 end
 ```
 
-# v0.17.0
+## v0.17.0
 
-## Per-thread Client Cache
+### Per-thread Client Cache
 
 The default adapter now uses a per-thread client cache internally, to improve compatibility with existing code that shares a single `Faraday::Connection` instance across multiple threads.
 

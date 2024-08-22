@@ -15,7 +15,11 @@ Please see the [project documentation](https://socketry.github.io/async-http-far
 
 ## Releases
 
-Please see the [project changes](https://socketry.github.io/async-http-faraday//changes/index) for all releases.
+Please see the [project changes](https://socketry.github.io/async-http-faraday/changes/index) for all releases.
+
+### v0.19.0
+
+  - [Support `in_parallel`](https://socketry.github.io/async-http-faraday/changes/index#support-in_parallel)
 
 ### v0.18.0
 
