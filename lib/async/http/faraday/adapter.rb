@@ -57,7 +57,9 @@ module Async
 				end
 				
 				def run
-					raise NotImplementedError, "Please update your Faraday version!"
+					if $VERBOSE
+						warn "Please update your Faraday version!", uplevel: 2
+					end
 				end
 				
 				def async(&block)
