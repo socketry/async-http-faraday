@@ -185,7 +185,7 @@ describe Async::HTTP::Faraday::Adapter do
 							body.write("chunk#{i}")
 						end
 					ensure
-						body.close
+						body.close_write
 					end
 					
 					Protocol::HTTP::Response[200, {}, body]
