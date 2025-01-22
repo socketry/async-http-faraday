@@ -179,19 +179,19 @@ module Async
 								response = env.stream_response do |&on_data|
 									response = client.call(request)
 									
+									save_response(env, response.status, nil, response.headers, finished: false)
+									
 									response.each do |chunk|
 										on_data.call(chunk)
 									end
 									
 									response
 								end
-								
-								save_response(env, response.status, nil, response.headers)
 							else
 								response = client.call(request)
-								
-								save_response(env, response.status, encoded_body(response), response.headers)
 							end
+							
+							save_response(env, response.status, encoded_body(response), response.headers)
 						end
 					end
 					

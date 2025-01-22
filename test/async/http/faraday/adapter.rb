@@ -198,16 +198,20 @@ describe Async::HTTP::Faraday::Adapter do
 					builder.adapter :async_http
 				end
 				
-				chunks = []
+				streamed = []
+				env = nil
 				
 				response = client.get(bound_url) do |request|
-					request.options.on_data = proc do |chunk|
-						chunks << chunk
+					request.options.on_data = proc do |chunk, size, block_env|
+						streamed << [chunk, size]
+						env ||= block_env
 					end
 				end
 				
-				expect(response.body).to be_nil
-				expect(chunks).to be == ["chunk0", "chunk1", "chunk2"]
+				expect(response.body).to be(:empty?)
+				expect(streamed).to be == [["chunk0", 6], ["chunk1", 12], ["chunk2", 18]]
+				expect(env).to be_a(Faraday::Env)
+				expect(env.status).to be == 200
 			end
 		end
 	end
