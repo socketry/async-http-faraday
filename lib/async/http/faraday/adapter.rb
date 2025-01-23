@@ -50,18 +50,22 @@ module Async
 				end
 			end
 			
+			# Implement the Faraday parallel manager interface, using Async.
 			class ParallelManager
+				# Create a new parallel manager.
 				def initialize(options = {})
 					@options = options
 					@barrier = nil
 				end
 				
+				# @deprecated Please update your Faraday version!
 				def run
 					if $VERBOSE
 						warn "Please update your Faraday version!", uplevel: 2
 					end
 				end
 				
+				# Run the given block asynchronously, using the barrier if available.
 				def async(&block)
 					if @barrier
 						@barrier.async(&block)
@@ -70,6 +74,7 @@ module Async
 					end
 				end
 				
+				# Execute the given block which can perform multiple concurrent requests, waiting for them all to complete.
 				def execute(&block)
 					Sync do
 						@barrier = Async::Barrier.new
@@ -87,6 +92,7 @@ module Async
 			class Adapter < ::Faraday::Adapter
 				self.supports_parallel = true
 				
+				# Create a new parallel manager, which is used to handle multiple concurrent requests.
 				def self.setup_parallel_manager(**options)
 					ParallelManager.new(options)
 				end
