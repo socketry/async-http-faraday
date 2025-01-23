@@ -1,4 +1,9 @@
-# Changes
+# Releases
+
+## Unreleased
+
+  - Implement the new response streaming interface, which provides the initial response status code and headers before streaming the response body.
+  - An empty response now sets the response body to an empty string rather than `nil` as required by the Faraday specification.
 
 ## v0.19.0
 
