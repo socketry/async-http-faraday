@@ -7,19 +7,20 @@
 # Copyright, 2019-2020, by Igor Sidorov.
 # Copyright, 2023, by Genki Takiuchi.
 # Copyright, 2024, by Jacob Frautschi.
+# Copyright, 2025, by Nikolaos Anastopoulos.
 
-require 'async/http/faraday'
+require "async/http/faraday"
 
-require 'sus/fixtures/async/reactor_context'
-require 'sus/fixtures/async/http/server_context'
+require "sus/fixtures/async/reactor_context"
+require "sus/fixtures/async/http/server_context"
 
-require 'faraday'
-require 'faraday/multipart'
+require "faraday"
+require "faraday/multipart"
 
-require 'protocol/http/body/file'
+require "protocol/http/body/file"
 
 describe Async::HTTP::Faraday::Adapter do
-	def get_response(url = bound_url, path = '/index', adapter_options: {})
+	def get_response(url = bound_url, path = "/index", adapter_options: {})
 		connection = Faraday.new(url) do |builder|
 			builder.adapter :async_http, **adapter_options
 		end
@@ -36,12 +37,12 @@ describe Async::HTTP::Faraday::Adapter do
 		with "basic http server" do
 			let(:app) do
 				Protocol::HTTP::Middleware.for do |request|
-					Protocol::HTTP::Response[200, {}, ['Hello World']]
+					Protocol::HTTP::Response[200, {}, ["Hello World"]]
 				end
 			end
 			
 			it "client can get resource" do
-				expect(get_response.body).to be == 'Hello World'
+				expect(get_response.body).to be == "Hello World"
 			end
 			
 			it "can make several requests on several threads" do
@@ -67,7 +68,7 @@ describe Async::HTTP::Faraday::Adapter do
 		with "utf-8 response body" do
 			let(:app) do
 				Protocol::HTTP::Middleware.for do |request|
-					Protocol::HTTP::Response[200, {'content-type' => 'text/html; charset=utf-8'}, ['こんにちは世界']]
+					Protocol::HTTP::Response[200, {"content-type" => "text/html; charset=utf-8"}, ["こんにちは世界"]]
 				end
 			end
 			
@@ -75,7 +76,7 @@ describe Async::HTTP::Faraday::Adapter do
 				body = get_response.body
 				
 				expect(body.encoding).to be == Encoding::UTF_8
-				expect(body).to be == 'こんにちは世界'
+				expect(body).to be == "こんにちは世界"
 			end
 		end
 		
@@ -84,7 +85,7 @@ describe Async::HTTP::Faraday::Adapter do
 			
 			let(:app) do
 				Protocol::HTTP::Middleware.for do |request|
-					Protocol::HTTP::Response[200, {}, ['.' * large_response_size]]
+					Protocol::HTTP::Response[200, {}, ["." * large_response_size]]
 				end
 			end
 			
@@ -101,7 +102,7 @@ describe Async::HTTP::Faraday::Adapter do
 			end
 			
 			it "properly handles no content responses" do
-				expect(get_response.body).to be == ''
+				expect(get_response.body).to be == ""
 				expect(get_response.body).not.to be(:frozen?)
 			end
 		end
@@ -110,12 +111,12 @@ describe Async::HTTP::Faraday::Adapter do
 			let(:app) do
 				Protocol::HTTP::Middleware.for do |request|
 					sleep(0.1)
-					Protocol::HTTP::Response[200, {}, ['Hello World']]
+					Protocol::HTTP::Response[200, {}, ["Hello World"]]
 				end
 			end
 			
 			it "client can get resource" do
-				expect(get_response.body).to be == 'Hello World'
+				expect(get_response.body).to be == "Hello World"
 			end
 			
 			it "raises an exception if request times out" do
@@ -135,22 +136,22 @@ describe Async::HTTP::Faraday::Adapter do
 			it "can post data" do
 				response = Faraday.new do |builder|
 					builder.adapter :async_http
-				end.post(bound_url, 'Hello World')
+				end.post(bound_url, "Hello World")
 				
-				expect(response.body).to be == 'Hello World'
+				expect(response.body).to be == "Hello World"
 			end
 			
 			it "can use a url-encoded body" do
 				response = Faraday.new do |builder|
 					builder.request :url_encoded
 					builder.adapter :async_http
-				end.post(bound_url, text: 'Hello World')
+				end.post(bound_url, text: "Hello World")
 				
-				expect(response.body).to be == 'text=Hello+World'
+				expect(response.body).to be == "text=Hello+World"
 			end
 			
 			it "can use a ::Protocol::HTTP::Body::Readable body" do
-				readable = ::Protocol::HTTP::Body::File.new(File.open(__FILE__, 'r'), 0...128)
+				readable = ::Protocol::HTTP::Body::File.new(File.open(__FILE__, "r"), 0...128)
 				
 				response = Faraday.new do |builder|
 					builder.adapter :async_http
@@ -219,7 +220,7 @@ describe Async::HTTP::Faraday::Adapter do
 	with "a remote http server" do
 		it "can get remote resource" do
 			Sync do
-				response = get_response('http://www.google.com', '/search?q=cats')
+				response = get_response("http://www.google.com", "/search?q=cats")
 			
 				expect(response).to be(:success?)
 			end
@@ -234,7 +235,7 @@ describe Async::HTTP::Faraday::Adapter do
 		it "works without initial url and trailing slash (compatiblisity to the original behaviour)" do
 			response = Faraday.new do |builder|
 				builder.adapter :async_http
-			end.get 'https://www.google.com'
+			end.get "https://www.google.com"
 			
 			expect(response).to be(:success?)
 		end
@@ -250,14 +251,14 @@ describe Async::HTTP::Faraday::Adapter do
 			end
 			
 			body = JSON.parse(response.body)
-			expect(body['files']['myfile']).to be == 'file content'
+			expect(body["files"]["myfile"]).to be == "file content"
 		end
 	end
 	
 	with "no server" do
 		it "wraps underlying exceptions into Faraday analogs" do
 			expect do
-				get_response("http://localhost:1", '/index')
+				get_response("http://localhost:1", "/index")
 			end.to raise_exception(Faraday::ConnectionFailed)
 		end
 	end

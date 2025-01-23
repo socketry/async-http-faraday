@@ -3,8 +3,8 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require 'async/http/faraday/clients'
-require 'async/http/middleware/location_redirector'
+require "async/http/faraday/clients"
+require "async/http/middleware/location_redirector"
 
 describe Async::HTTP::Faraday::PersistentClients do
 	let(:clients) {subject.new}
@@ -17,7 +17,7 @@ describe Async::HTTP::Faraday::PersistentClients do
 		end
 		
 		it "can wrap the client with middleware" do
-			endpoint = Async::HTTP::Endpoint.parse('http://example.com')
+			endpoint = Async::HTTP::Endpoint.parse("http://example.com")
 			client = clients.make_client(endpoint)
 			
 			expect(client).to be_a(Async::HTTP::Middleware::LocationRedirector)
@@ -26,7 +26,7 @@ describe Async::HTTP::Faraday::PersistentClients do
 	
 	with "#make_client" do
 		it "caches the client" do
-			endpoint = Async::HTTP::Endpoint.parse('http://example.com')
+			endpoint = Async::HTTP::Endpoint.parse("http://example.com")
 			client = clients.make_client(endpoint)
 			
 			expect(clients.make_client(endpoint)).to be_equal(client)
@@ -35,7 +35,7 @@ describe Async::HTTP::Faraday::PersistentClients do
 	
 	with "#with_client" do
 		it "caches the client" do
-			endpoint = Async::HTTP::Endpoint.parse('http://example.com')
+			endpoint = Async::HTTP::Endpoint.parse("http://example.com")
 			
 			clients.with_client(endpoint) do |client|
 				clients.with_client(endpoint) do |other|
@@ -47,8 +47,8 @@ describe Async::HTTP::Faraday::PersistentClients do
 	
 	with "#with_proxied_client" do
 		it "caches the client" do
-			endpoint = Async::HTTP::Endpoint.parse('http://example.com')
-			proxy_endpoint = Async::HTTP::Endpoint.parse('http://proxy.example.com')
+			endpoint = Async::HTTP::Endpoint.parse("http://example.com")
+			proxy_endpoint = Async::HTTP::Endpoint.parse("http://proxy.example.com")
 			
 			clients.with_proxied_client(proxy_endpoint, endpoint) do |client|
 				clients.with_proxied_client(proxy_endpoint, endpoint) do |other|

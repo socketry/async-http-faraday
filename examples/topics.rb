@@ -6,14 +6,14 @@
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
-require 'async'
-require 'faraday'
-require 'async/http/faraday'
+require "async"
+require "faraday"
+require "async/http/faraday"
 
 # Async.logger.debug!
 
 module TestAsync
-	URL = 'https://www.google.com/search'
+	URL = "https://www.google.com/search"
 	TOPICS = %W{ruby python lisp javascript cobol}
 	
 	def self.fetch_topics_async

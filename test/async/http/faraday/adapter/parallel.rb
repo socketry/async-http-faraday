@@ -3,10 +3,10 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require 'async/http/faraday'
+require "async/http/faraday"
 
-require 'sus/fixtures/async/reactor_context'
-require 'sus/fixtures/async/http/server_context'
+require "sus/fixtures/async/reactor_context"
+require "sus/fixtures/async/http/server_context"
 
 describe Async::HTTP::Faraday::Adapter do
 	with "a local http server" do
@@ -16,7 +16,7 @@ describe Async::HTTP::Faraday::Adapter do
 
 		let(:app) do
 			Protocol::HTTP::Middleware.for do |request|
-				Protocol::HTTP::Response[200, {}, ['Hello World']]
+				Protocol::HTTP::Response[200, {}, ["Hello World"]]
 			end
 		end
 		
@@ -33,9 +33,9 @@ describe Async::HTTP::Faraday::Adapter do
 				response3 = adapter.get("/index")
 			end
 			
-			expect(response1.body).to be == 'Hello World'
-			expect(response2.body).to be == 'Hello World'
-			expect(response3.body).to be == 'Hello World'
+			expect(response1.body).to be == "Hello World"
+			expect(response2.body).to be == "Hello World"
+			expect(response3.body).to be == "Hello World"
 		ensure
 			adapter&.close
 		end

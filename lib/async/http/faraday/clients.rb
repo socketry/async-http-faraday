@@ -3,12 +3,12 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require 'faraday'
-require 'faraday/adapter'
-require 'kernel/sync'
+require "faraday"
+require "faraday/adapter"
+require "kernel/sync"
 
-require 'async/http/client'
-require 'async/http/proxy'
+require "async/http/client"
+require "async/http/proxy"
 
 module Async
 	module HTTP

@@ -8,17 +8,18 @@
 # Copyright, 2023, by Genki Takiuchi.
 # Copyright, 2023, by Flavio Fernandes.
 # Copyright, 2024, by Jacob Frautschi.
+# Copyright, 2025, by Nikolaos Anastopoulos.
 
-require 'faraday'
-require 'faraday/adapter'
+require "faraday"
+require "faraday/adapter"
 
-require 'async/barrier'
-require 'kernel/sync'
+require "async/barrier"
+require "kernel/sync"
 
-require 'async/http/client'
-require 'async/http/proxy'
+require "async/http/client"
+require "async/http/proxy"
 
-require_relative 'clients'
+require_relative "clients"
 
 module Async
 	module HTTP
@@ -136,7 +137,7 @@ module Async
 					super
 					
 					# For compatibility with the default adapter:
-					env.url.path = '/' if env.url.path.empty?
+					env.url.path = "/" if env.url.path.empty?
 					
 					if parallel_manager = env.parallel_manager
 						parallel_manager.async do
@@ -234,11 +235,11 @@ module Async
 				
 				def encoded_body(response)
 					body = response.read
-					return +'' if body.nil?
-					content_type = response.headers['content-type']
+					return +"" if body.nil?
+					content_type = response.headers["content-type"]
 					return body unless content_type
 					params = extract_type_parameters(content_type)
-					if charset = params['charset']
+					if charset = params["charset"]
 						body = body.dup if body.frozen?
 						body.force_encoding(charset)
 					end
@@ -249,10 +250,10 @@ module Async
 				
 				def extract_type_parameters(content_type)
 					result = {}
-					list = content_type.split(';')
+					list = content_type.split(";")
 					list.shift
 					list.each do |param|
-						key, value = *param.split('=', 2)
+						key, value = *param.split("=", 2)
 						result[key.strip] = value.strip
 					end
 					result
