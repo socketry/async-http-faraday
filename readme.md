@@ -15,19 +15,24 @@ Please see the [project documentation](https://socketry.github.io/async-http-far
 
 ## Releases
 
-Please see the [project changes](https://socketry.github.io/async-http-faraday/changes/index) for all releases.
+Please see the [project releases](https://socketry.github.io/async-http-faraday/releases/index) for all releases.
+
+### v0.20.0
+
+  - Implement the new response streaming interface, which provides the initial response status code and headers before streaming the response body.
+  - An empty response now sets the response body to an empty string rather than `nil` as required by the Faraday specification.
 
 ### v0.19.0
 
-  - [Support `in_parallel`](https://socketry.github.io/async-http-faraday/changes/index#support-in_parallel)
+  - [Support `in_parallel`](https://socketry.github.io/async-http-faraday/releases/index#support-in_parallel)
 
 ### v0.18.0
 
-  - [Config Block](https://socketry.github.io/async-http-faraday/changes/index#config-block)
+  - [Config Block](https://socketry.github.io/async-http-faraday/releases/index#config-block)
 
 ### v0.17.0
 
-  - [Per-thread Client Cache](https://socketry.github.io/async-http-faraday/changes/index#per-thread-client-cache)
+  - [Per-thread Client Cache](https://socketry.github.io/async-http-faraday/releases/index#per-thread-client-cache)
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v0.20.0
 
   - Implement the new response streaming interface, which provides the initial response status code and headers before streaming the response body.
   - An empty response now sets the response body to an empty string rather than `nil` as required by the Faraday specification.
@@ -11,7 +11,7 @@
 
 The adapter now supports the `in_parallel` method, which allows multiple requests to be made concurrently.
 
-```ruby
+``` ruby
 adapter = Faraday.new(bound_url) do |builder|
 	builder.adapter :async_http
 end
@@ -31,7 +31,7 @@ puts response3.body # => "Hello World"
 
 This is primarily for compatibility with existing code. If you are designing a new library, you should just use `Async` directly:
 
-```ruby
+``` ruby
 Async do
 	response1 = Async{adapter.get("/index")}
 	response2 = Async{adapter.get("/index")}
@@ -49,7 +49,7 @@ end
 
 The `config_block` provided to the adapter must now return `nil`, `client` or a middleware wrapper around `client`.
 
-```ruby
+``` ruby
 Faraday.new do |builder|
 	builder.adapter :async_http do |client|
 		# Option 1 (same as returning `nil`), use client as is:
@@ -67,7 +67,7 @@ end
 
 The default adapter now uses a per-thread client cache internally, to improve compatibility with existing code that shares a single `Faraday::Connection` instance across multiple threads.
 
-```ruby
+``` ruby
 adapter = Faraday.new do |builder|
 	builder.adapter :async_http
 end
