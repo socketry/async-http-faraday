@@ -101,7 +101,8 @@ describe Async::HTTP::Faraday::Adapter do
 			end
 			
 			it "properly handles no content responses" do
-				expect(get_response.body).to be_nil
+				expect(get_response.body).to be == ''
+				expect(get_response.body).not.to be(:frozen?)
 			end
 		end
 		

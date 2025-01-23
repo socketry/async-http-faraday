@@ -234,7 +234,7 @@ module Async
 				
 				def encoded_body(response)
 					body = response.read
-					return body if body.nil?
+					return +'' if body.nil?
 					content_type = response.headers['content-type']
 					return body unless content_type
 					params = extract_type_parameters(content_type)
