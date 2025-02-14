@@ -203,12 +203,12 @@ module Async
 					end
 					
 					return @app.call(env)
-				rescue Errno::ETIMEDOUT, Async::TimeoutError => e
-					raise ::Faraday::TimeoutError, e
-				rescue OpenSSL::SSL::SSLError => e
-					raise ::Faraday::SSLError, e
-				rescue *CONNECTION_EXCEPTIONS => e
-					raise ::Faraday::ConnectionFailed, e
+				rescue Errno::ETIMEDOUT, Async::TimeoutError => error
+					raise ::Faraday::TimeoutError, error
+				rescue OpenSSL::SSL::SSLError => error
+					raise ::Faraday::SSLError, error
+				rescue *CONNECTION_EXCEPTIONS => error
+					raise ::Faraday::ConnectionFailed, error
 				end
 				
 				def with_client(env)
