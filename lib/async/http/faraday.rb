@@ -4,9 +4,7 @@
 # Copyright, 2018-2024, by Samuel Williams.
 
 require_relative "faraday/version"
-require_relative "faraday/adapter"
-
-Faraday::Adapter.register_middleware :async_http => Async::HTTP::Faraday::Adapter
+require_relative "faraday/register"
 
 # @namespace
 module Async
