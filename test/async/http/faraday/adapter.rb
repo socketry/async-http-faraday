@@ -30,6 +30,34 @@ describe Async::HTTP::Faraday::Adapter do
 		connection&.close
 	end
 	
+	with "#timeout" do
+		it "can set timeout" do
+			connection = Faraday.new do |builder|
+				builder.adapter :async_http, timeout: 0.05
+			end
+			
+			adapter = connection.builder.app
+			
+			expect(adapter).to have_attributes(
+				timeout: be == 0.05
+			)
+		end
+	end
+	
+	with "#read_timeout" do
+		it "can set read timeout" do
+			connection = Faraday.new do |builder|
+				builder.adapter :async_http, read_timeout: 0.05
+			end
+			
+			adapter = connection.builder.app
+			
+			expect(adapter).to have_attributes(
+				read_timeout: be == 0.05
+			)
+		end
+	end
+	
 	with "a local http server" do
 		include Sus::Fixtures::Async::ReactorContext
 		include Sus::Fixtures::Async::HTTP::ServerContext

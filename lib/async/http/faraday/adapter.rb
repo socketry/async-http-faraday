@@ -119,6 +119,7 @@ module Async
 					super
 					
 					@timeout = @connection_options.delete(:timeout)
+					@read_timeout = @connection_options.delete(:read_timeout)
 					
 					if clients = @connection_options.delete(:clients)
 						@clients = clients.call(**@connection_options, &@config_block)
@@ -126,6 +127,12 @@ module Async
 						@clients = PerThreadPersistentClients.new(**@connection_options, &@config_block)
 					end
 				end
+				
+				# @attribute [Numeric | Nil] The maximum time to send a request and wait for a response.
+				attr :timeout
+				
+				# @attribute [Numeric | Nil] The maximum time to wait for an individual IO operation.
+				attr :read_timeout
 				
 				# Close all clients.
 				def close
@@ -181,7 +188,7 @@ module Async
 						
 						request = ::Protocol::HTTP::Request.new(endpoint.scheme, endpoint.authority, method, endpoint.path, nil, headers, body)
 						
-						with_timeout do
+						with_timeout(env.request.timeout || @timeout) do
 							if env.stream_response?
 								response = env.stream_response do |&on_data|
 									response = client.call(request)
@@ -213,7 +220,7 @@ module Async
 				
 				def with_client(env)
 					Sync do
-						endpoint = Endpoint.new(env.url)
+						endpoint = Endpoint.new(env.url, timeout: @read_timeout)
 						
 						if proxy = env.request.proxy
 							proxy_endpoint = Endpoint.new(proxy.uri)
@@ -229,9 +236,9 @@ module Async
 					end
 				end
 				
-				def with_timeout(task: Async::Task.current)
-					if @timeout
-						task.with_timeout(@timeout, ::Faraday::TimeoutError) do
+				def with_timeout(timeout = @timeout, task: Async::Task.current)
+					if timeout
+						task.with_timeout(timeout, ::Faraday::TimeoutError) do
 							yield
 						end
 					else

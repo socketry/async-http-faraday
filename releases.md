@@ -1,5 +1,16 @@
 # Releases
 
+## Unreleased
+
+### Improved support for `timeout` and `read_timeout`.
+
+Previously, only a per-connection `timeout` was supported, but now:
+
+1. `timeout` can be set per request too.
+2. `read_timeout` can be set per adapter and is assigned to `IO#timeout` if available.
+
+This improves compatibility with existing code that uses `timeout` and `read_timeout`.
+
 ## v0.20.0
 
   - Implement the new response streaming interface, which provides the initial response status code and headers before streaming the response body.
