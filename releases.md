@@ -18,7 +18,7 @@ This improves compatibility with existing code that uses `timeout` and `read_tim
 
 ## v0.19.0
 
-### Support `in_parallel`
+### Support `in_parallel`.
 
 The adapter now supports the `in_parallel` method, which allows multiple requests to be made concurrently.
 
@@ -56,7 +56,7 @@ end
 
 ## v0.18.0
 
-### Config Block
+### Support for `config_block` returning a middleware wrapper.
 
 The `config_block` provided to the adapter must now return `nil`, `client` or a middleware wrapper around `client`.
 
@@ -74,7 +74,7 @@ end
 
 ## v0.17.0
 
-### Per-thread Client Cache
+### Introduced a per-thread `Client` cache.
 
 The default adapter now uses a per-thread client cache internally, to improve compatibility with existing code that shares a single `Faraday::Connection` instance across multiple threads.
 
