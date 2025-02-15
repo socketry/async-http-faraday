@@ -1,13 +1,13 @@
 # Releases
 
-## Unreleased
+## v0.21.0
 
 ### Improved support for `timeout` and `read_timeout`.
 
 Previously, only a per-connection `timeout` was supported, but now:
 
-1. `timeout` can be set per request too.
-2. `read_timeout` can be set per adapter and is assigned to `IO#timeout` if available.
+1.  `timeout` can be set per request too.
+2.  `read_timeout` can be set per adapter and is assigned to `IO#timeout` if available.
 
 This improves compatibility with existing code that uses `timeout` and `read_timeout`.
 
