@@ -111,7 +111,7 @@ module Async
 					SocketError
 				].freeze
 				
-				# Create a Farady compatible adapter.
+				# Create a Faraday compatible adapter.
 				# 
 				# @parameter timeout [Integer] The timeout for requests.
 				# @parameter options [Hash] Additional options to pass to the underlying Async::HTTP::Client.
@@ -181,6 +181,12 @@ module Async
 						end
 						
 						if headers = env.request_headers
+              # Ignore Content-Length if given, it will be set for us later anyway (lowercased)
+              if headers.has_key?("Content-Length")
+                headers = headers.dup
+                headers.delete("Content-Length")
+              end
+              
 							headers = ::Protocol::HTTP::Headers[headers]
 						end
 						
