@@ -190,9 +190,7 @@ module Async
 							elsif body.respond_to?(:read)
 								body = BodyReadWrapper.new(body, content_length)
 							else
-								body = ::Protocol::HTTP::Body::Buffered.wrap(body).then do |buffered|
-									::Protocol::HTTP::Body::Buffered.new(buffered.chunks, content_length)
-								end
+								body = ::Protocol::HTTP::Body::Buffered.wrap(body)
 							end
 						end
 						
