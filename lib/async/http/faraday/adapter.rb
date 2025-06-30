@@ -32,10 +32,15 @@ module Async
 				#
 				# @parameter body [Interface(:read)] The input body to wrap.
 				# @parameter block_size [Integer] The size of the blocks to read from the body.
-				def initialize(body, block_size: 4096)
+				# @parameter length [Integer | Nil] The length of the body, if known.
+				def initialize(body, length = nil, block_size: 4096)
 					@body = body
+					@length = length
 					@block_size = block_size
 				end
+				
+				# @attribute [Integer | Nil] The total length of the body, or `nil` if the length is unknown.
+				attr :length
 				
 				# Close the body if possible.
 				def close(error = nil)
@@ -111,7 +116,7 @@ module Async
 					SocketError
 				].freeze
 				
-				# Create a Farady compatible adapter.
+				# Create a Faraday compatible adapter.
 				# 
 				# @parameter timeout [Integer] The timeout for requests.
 				# @parameter options [Hash] Additional options to pass to the underlying Async::HTTP::Client.
@@ -168,20 +173,25 @@ module Async
 				
 				def perform_request(env)
 					with_client(env) do |endpoint, client|
+						if headers = env.request_headers
+							headers = ::Protocol::HTTP::Headers[headers]
+							
+							# Use content-length to inform body length if given, but remove the header since it will be
+							# set for us later anyway, and not doing so could result in a duplicate content-length headers
+							# if capitalization differs
+							content_length = headers.delete("content-length")&.to_i
+						end
+						
 						if body = env.body
 							# We need to ensure the body is wrapped in a Readable object so that it can be read in chunks:
 							# Faraday's body only responds to `#read`.
 							if body.is_a?(::Protocol::HTTP::Body::Readable)
 								# Good to go
 							elsif body.respond_to?(:read)
-								body = BodyReadWrapper.new(body)
+								body = BodyReadWrapper.new(body, content_length)
 							else
 								body = ::Protocol::HTTP::Body::Buffered.wrap(body)
 							end
-						end
-						
-						if headers = env.request_headers
-							headers = ::Protocol::HTTP::Headers[headers]
 						end
 						
 						method = env.method.to_s.upcase
