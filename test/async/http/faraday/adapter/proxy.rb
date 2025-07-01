@@ -6,7 +6,6 @@
 require "async/http/faraday"
 
 require "sus/fixtures/async/reactor_context"
-require "sus/fixtures/async/http/server_context"
 
 PROXY_URL = ENV.key?("PROXY_URL")
 

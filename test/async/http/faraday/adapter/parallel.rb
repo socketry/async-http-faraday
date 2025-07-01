@@ -5,12 +5,10 @@
 
 require "async/http/faraday"
 
-require "sus/fixtures/async/reactor_context"
 require "sus/fixtures/async/http/server_context"
 
 describe Async::HTTP::Faraday::Adapter do
 	with "a local http server" do
-		include Sus::Fixtures::Async::ReactorContext
 		include Sus::Fixtures::Async::HTTP::ServerContext
 		
 		let(:app) do
