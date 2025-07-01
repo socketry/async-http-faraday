@@ -13,7 +13,6 @@ describe Async::HTTP::Faraday::Adapter do
 		include Sus::Fixtures::Async::ReactorContext
 		include Sus::Fixtures::Async::HTTP::ServerContext
 		
-
 		let(:app) do
 			Protocol::HTTP::Middleware.for do |request|
 				Protocol::HTTP::Response[200, {}, ["Hello World"]]
