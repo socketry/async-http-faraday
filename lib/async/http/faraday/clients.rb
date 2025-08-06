@@ -177,10 +177,10 @@ module Async
 				# This will close all clients associated with all threads.
 				def close
 					Thread.list.each do |thread|
-						if clients = thread[@key]
-							clients.close
+						if clients = thread.thread_variable_get(@key)
+							thread.thread_variable_set(@key, nil)
 							
-							thread[@key] = nil
+							clients.close
 						end
 					end
 				end
