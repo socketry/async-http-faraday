@@ -17,6 +17,10 @@ Please see the [project documentation](https://socketry.github.io/async-http-far
 
 Please see the [project releases](https://socketry.github.io/async-http-faraday/releases/index) for all releases.
 
+### v0.22.1
+
+  - Fix memory leak in `Async::HTTP::Faraday::PerThreadPersistentClients` by ensuring that the `close` method is called on all clients when the adapter is closed.
+
 ### v0.21.0
 
   - [Improved support for `timeout` and `read_timeout`.](https://socketry.github.io/async-http-faraday/releases/index#improved-support-for-timeout-and-read_timeout.)

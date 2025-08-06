@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v0.22.1
 
   - Fix memory leak in `Async::HTTP::Faraday::PerThreadPersistentClients` by ensuring that the `close` method is called on all clients when the adapter is closed.
 
