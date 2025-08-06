@@ -248,7 +248,7 @@ describe Async::HTTP::Faraday::Adapter do
 		it "can get remote resource" do
 			Sync do
 				response = get_response("http://www.google.com", "/search?q=cats")
-			
+				
 				expect(response).to be(:success?)
 			end
 		end

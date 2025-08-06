@@ -9,6 +9,7 @@
 # Copyright, 2023, by Flavio Fernandes.
 # Copyright, 2024, by Jacob Frautschi.
 # Copyright, 2025, by Nikolaos Anastopoulos.
+# Copyright, 2025, by Pedro Fayolle.
 
 require "faraday"
 require "faraday/adapter"
