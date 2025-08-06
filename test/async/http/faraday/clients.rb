@@ -57,4 +57,33 @@ describe Async::HTTP::Faraday::PersistentClients do
 			end
 		end
 	end
+	
+	with "#close" do
+		it "closes all clients" do
+			endpoint = Async::HTTP::Endpoint.parse("http://example.com")
+			client = clients.make_client(endpoint)
+			expect(client).to receive(:close)
+			
+			clients.close
+		end
+	end
+end
+
+describe Async::HTTP::Faraday::PerThreadPersistentClients do
+	let(:clients) {subject.new}
+	
+	with "#close" do
+		it "closes all clients" do
+			endpoint = Async::HTTP::Endpoint.parse("http://example.com")
+			closed = false
+			
+			clients.with_client(endpoint) do |client|
+				expect(client).to receive(:close, &proc{closed = true})
+			end
+			
+			expect(closed).to be == false
+			clients.close
+			expect(closed).to be == true
+		end
+	end
 end
