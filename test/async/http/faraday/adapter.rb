@@ -18,6 +18,7 @@ require "faraday"
 require "faraday/multipart"
 
 require "protocol/http/body/file"
+require "protocol/multipart"
 
 describe Async::HTTP::Faraday::Adapter do
 	def get_response(url = bound_url, path = "/index", adapter_options: {})
@@ -59,7 +60,6 @@ describe Async::HTTP::Faraday::Adapter do
 	end
 	
 	with "a local http server" do
-		include Sus::Fixtures::Async::ReactorContext
 		include Sus::Fixtures::Async::HTTP::ServerContext
 		
 		with "basic http server" do
@@ -266,14 +266,45 @@ describe Async::HTTP::Faraday::Adapter do
 			
 			expect(response).to be(:success?)
 		end
+	end
+	
+	with "a multi-part post body" do
+		include Sus::Fixtures::Async::HTTP::ServerContext
+		
+		let(:app) do
+			Protocol::HTTP::Middleware.for do |request|
+				# Parse the multipart body and extract file content
+				content_type = request.headers["content-type"]
+				boundary = content_type[/boundary=(.+)$/, 1]
+				
+				body_content = request.body.read
+				readable = StringIO.new(body_content)
+				parser = Protocol::Multipart::Parser.new(readable, boundary)
+				
+				files = {}
+				
+				parser.each do |part|
+					# Extract the field name from Content-Disposition header
+					if part.headers["content-disposition"] =~ /name="([^"]+)"/
+						name = $1
+						content = String.new
+						part.each { |chunk| content << chunk }
+						files[name] = content
+					end
+				end
+				
+				response_body = JSON.generate({"files" => files})
+				Protocol::HTTP::Response[200, {"content-type" => "application/json"}, [response_body]]
+			end
+		end
 		
 		it "can use a multi-part post body" do
-			connection = Faraday.new do |builder|
+			connection = Faraday.new(bound_url) do |builder|
 				builder.request :multipart
 				builder.adapter :async_http
 			end
 			
-			response = connection.post("https://httpbin.org/post") do |request|
+			response = connection.post("/") do |request|
 				request.body = {"myfile" => Faraday::Multipart::FilePart.new(StringIO.new("file content"), "text/plain", "file.txt")}
 			end
 			

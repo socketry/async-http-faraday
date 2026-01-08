@@ -32,5 +32,7 @@ group :test do
 	gem "sus-fixtures-async"
 	gem "sus-fixtures-async-http"
 	
+	gem "protocol-multipart"
+	
 	gem "openssl", "~> 4.0"
 end
