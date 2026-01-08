@@ -91,7 +91,7 @@ end
 	Thread.new do
 		Async do
 			# Each thread has it's own client cache.
-			adapter.get('http://example.com')
+			adapter.get("http://example.com")
 		end
 	end
 end

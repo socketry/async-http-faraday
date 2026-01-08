@@ -26,7 +26,7 @@ You can configure a custom connection to use the async adapter:
 
 ``` ruby
 # Per connection:
-connection = Faraday.new(...) do |builder|
+connection = Faraday.new do |builder|
 	builder.adapter :async_http
 end
 ```
