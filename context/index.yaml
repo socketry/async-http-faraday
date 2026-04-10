@@ -1,0 +1,13 @@
+# Automatically generated context index for Utopia::Project guides.
+# Do not edit then files in this directory directly, instead edit the guides and then run `bake utopia:project:agent:context:update`.
+---
+description: Provides an adaptor between async-http and faraday.
+metadata:
+  documentation_uri: https://socketry.github.io/async-http-faraday/
+  funding_uri: https://github.com/sponsors/ioquatix
+  source_code_uri: https://github.com/socketry/async-http.git
+files:
+- path: getting-started.md
+  title: Getting Started
+  description: This guide explains how to use use `Async::HTTP::Faraday` as a drop-in
+    replacement for improved concurrency.
