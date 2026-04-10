@@ -156,7 +156,7 @@ describe Async::HTTP::Faraday::Adapter do
 		with "a post request" do
 			let(:app) do
 				Protocol::HTTP::Middleware.for do |request|
-					Protocol::HTTP::Response[200, {}, [request.body.read]]
+					Protocol::HTTP::Response[200, {}, [request.read]]
 				end
 			end
 			
@@ -277,7 +277,7 @@ describe Async::HTTP::Faraday::Adapter do
 				content_type = request.headers["content-type"]
 				boundary = content_type[/boundary=(.+)$/, 1]
 				
-				body_content = request.body.read
+				body_content = request.read
 				readable = StringIO.new(body_content)
 				parser = Protocol::Multipart::Parser.new(readable, boundary)
 				
