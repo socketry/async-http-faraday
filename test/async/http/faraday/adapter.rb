@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2025, by Samuel Williams.
+# Copyright, 2018-2026, by Samuel Williams.
 # Copyright, 2018, by Andreas Garnaes.
 # Copyright, 2019, by Denis Talakevich.
 # Copyright, 2019-2020, by Igor Sidorov.
@@ -288,7 +288,7 @@ describe Async::HTTP::Faraday::Adapter do
 					if part.headers["content-disposition"] =~ /name="([^"]+)"/
 						name = $1
 						content = String.new
-						part.each { |chunk| content << chunk }
+						part.each{|chunk| content << chunk}
 						files[name] = content
 					end
 				end
