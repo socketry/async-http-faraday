@@ -105,6 +105,7 @@ module Async
 				
 				# The exceptions that are considered connection errors and result in a `Faraday::ConnectionFailed` exception.
 				CONNECTION_EXCEPTIONS = [
+					::Protocol::HTTP::RemoteError,
 					Errno::EADDRNOTAVAIL,
 					Errno::ECONNABORTED,
 					Errno::ECONNREFUSED,

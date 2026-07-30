@@ -16,6 +16,7 @@ require "sus/fixtures/async/http/server_context"
 
 require "faraday"
 require "faraday/multipart"
+require "faraday/retry"
 
 require "protocol/http/body/file"
 require "protocol/multipart"
@@ -265,6 +266,42 @@ describe Async::HTTP::Faraday::Adapter do
 			end.get "https://www.google.com"
 			
 			expect(response).to be(:success?)
+		end
+	end
+	
+	with "a remote failure" do
+		it "can retry using Faraday middleware" do
+			attempts = 0
+			client = Object.new
+			client.define_singleton_method(:call) do |request|
+				attempts += 1
+				
+				if attempts == 1
+					body = Protocol::HTTP::Body::Writable.new
+					body.close_write(Protocol::HTTP::RemoteError.new("The remote endpoint failed!"))
+					Protocol::HTTP::Response[200, {}, body]
+				else
+					Protocol::HTTP::Response[200, {}, ["Hello World"]]
+				end
+			end
+			
+			clients = Object.new
+			clients.define_singleton_method(:with_client) do |endpoint, &block|
+				block.call(client)
+			end
+			clients.define_singleton_method(:close){}
+			
+			connection = Faraday.new("https://example.com") do |builder|
+				builder.request :retry, max: 1, exceptions: [Faraday::ConnectionFailed]
+				builder.adapter :async_http, clients: proc{clients}
+			end
+			
+			response = connection.get("/")
+			
+			expect(response.body).to be == "Hello World"
+			expect(attempts).to be == 2
+		ensure
+			connection&.close
 		end
 	end
 	

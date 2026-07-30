@@ -28,6 +28,7 @@ group :test do
 	gem "bake-test-external"
 	
 	gem "faraday-multipart"
+	gem "faraday-retry"
 	
 	gem "sus-fixtures-async"
 	gem "sus-fixtures-async-http"
