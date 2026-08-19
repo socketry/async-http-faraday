@@ -285,8 +285,7 @@ describe Async::HTTP::Faraday::Adapter do
 				
 				parser.each do |part|
 					# Extract the field name from Content-Disposition header
-					if part.headers["content-disposition"] =~ /name="([^"]+)"/
-						name = $1
+					if name = part.headers["content-disposition"]["name"]
 						content = String.new
 						part.each{|chunk| content << chunk}
 						files[name] = content
