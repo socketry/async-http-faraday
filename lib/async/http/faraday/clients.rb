@@ -86,7 +86,7 @@ module Async
 					clients = @clients.values
 					@clients.clear
 					
-					clients.each(&:close)
+					clients.reverse_each(&:close)
 				end
 				
 				# Lookup or create a client for the given endpoint.
