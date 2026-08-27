@@ -48,6 +48,21 @@ connection = Faraday.new(...) do |builder|
 end
 ~~~
 
+### Retrying Remote Failures
+
+When a remote endpoint fails while processing a request, the adapter raises {ruby Faraday::ConnectionFailed}. You can use the `faraday-retry` middleware to retry idempotent requests:
+
+~~~ruby
+require "faraday/retry"
+
+connection = Faraday.new(...) do |builder|
+	builder.request :retry, exceptions: [Faraday::ConnectionFailed]
+	builder.adapter :async_http
+end
+~~~
+
+By default, `faraday-retry` only retries idempotent methods. Configure its retry policy explicitly before retrying other methods.
+
 The value of isolation cannot be overstated - if you can design you program using a share-nothing (between threads) architecture, you will have a much easier time debugging and reasoning about your program, however this comes at the cost of increased resource usage.
 
 Alternatively, if you do not want to cache client connections, you can use the `Async::HTTP::Faraday::Clients` interface, which closes the connection after each request:
