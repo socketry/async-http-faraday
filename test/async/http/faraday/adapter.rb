@@ -19,6 +19,8 @@ require "faraday/multipart"
 require "faraday/retry"
 
 require "protocol/http/body/file"
+require "protocol/http1/error"
+require "protocol/http2/error"
 require "protocol/multipart"
 
 describe Async::HTTP::Faraday::Adapter do
@@ -270,11 +272,17 @@ describe Async::HTTP::Faraday::Adapter do
 	end
 	
 	[
+		Protocol::HTTP::Error.new("The HTTP exchange failed!"),
 		Protocol::HTTP::RemoteError.new("The remote endpoint failed!"),
+		Protocol::HTTP::RefusedError.new("The request was refused!"),
+		Protocol::HTTP1::Error.new("The HTTP/1 exchange failed!"),
+		Protocol::HTTP1::ContentLengthError.new("The response body was truncated!"),
+		Protocol::HTTP2::Error.new("The HTTP/2 exchange failed!"),
 		Protocol::HTTP2::StreamError.for(Protocol::HTTP2::Error::INTERNAL_ERROR),
 		Protocol::HTTP2::StreamError.for(Protocol::HTTP2::Error::CANCEL),
+		Protocol::HTTP2::GoawayError.for(Protocol::HTTP2::Error::INTERNAL_ERROR),
 	].each do |error|
-		with "#{error.class}: #{error.message}", unique: error.message do
+		with "#{error.class}: #{error.message}", unique: "#{error.class}: #{error.message}" do
 			it "can retry using Faraday middleware while preserving the cause" do
 				attempts = 0
 				failures = []

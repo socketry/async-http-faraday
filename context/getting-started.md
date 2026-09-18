@@ -62,7 +62,7 @@ This will reduce memory usage but increase the latency of every request.
 
 ### Retrying Failed Requests
 
-An HTTP/2 stream reset can interrupt a response after its headers have arrived. The adapter translates {ruby Protocol::HTTP2::StreamError} and {ruby Protocol::HTTP::RemoteError} into {ruby Faraday::ConnectionFailed}, preserving the original exception as its cause. This translation does not add retries or classify every possible body-read exception.
+An HTTP/2 stream reset can interrupt a response after its headers have arrived. The adapter translates {ruby Protocol::HTTP::Error} and its subclasses, including HTTP/1 errors, {ruby Protocol::HTTP2::StreamError}, and {ruby Protocol::HTTP::RemoteError}, into {ruby Faraday::ConnectionFailed}, preserving the original exception as its cause. This includes locally detected protocol errors, not just remote failures. The translation does not add retries, guarantee that retrying is safe or useful, or classify every possible body-read exception.
 
 For requests whose incomplete responses can be discarded, you can configure `faraday-retry` to repeat the request. This example allows up to two retries with backoff for bodyless `GET` and `HEAD` requests:
 
