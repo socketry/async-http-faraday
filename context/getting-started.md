@@ -48,21 +48,6 @@ connection = Faraday.new(...) do |builder|
 end
 ~~~
 
-### Retrying Remote Failures
-
-When a remote endpoint fails while processing a request, the adapter raises {ruby Faraday::ConnectionFailed}. You can use the `faraday-retry` middleware to retry idempotent requests:
-
-~~~ruby
-require "faraday/retry"
-
-connection = Faraday.new(...) do |builder|
-	builder.request :retry, exceptions: [Faraday::ConnectionFailed]
-	builder.adapter :async_http
-end
-~~~
-
-By default, `faraday-retry` only retries idempotent methods. Configure its retry policy explicitly before retrying other methods.
-
 The value of isolation cannot be overstated - if you can design you program using a share-nothing (between threads) architecture, you will have a much easier time debugging and reasoning about your program, however this comes at the cost of increased resource usage.
 
 Alternatively, if you do not want to cache client connections, you can use the `Async::HTTP::Faraday::Clients` interface, which closes the connection after each request:
@@ -74,3 +59,23 @@ end
 ~~~
 
 This will reduce memory usage but increase the latency of every request.
+
+### Retrying Failed Requests
+
+An HTTP/2 stream reset can interrupt a response after its headers have arrived. The adapter translates {ruby Protocol::HTTP2::StreamError} and {ruby Protocol::HTTP::RemoteError} into {ruby Faraday::ConnectionFailed}, preserving the original exception as its cause. This translation does not add retries or classify every possible body-read exception.
+
+For requests whose incomplete responses can be discarded, you can configure `faraday-retry` to repeat the request. This example allows up to two retries with backoff for bodyless `GET` and `HEAD` requests:
+
+~~~ruby
+require "faraday/retry"
+
+connection = Faraday.new("https://api.example.com") do |builder|
+	builder.request :retry, max: 2, interval: 0.1, backoff_factor: 2,
+		methods: [:get, :head], exceptions: [Faraday::ConnectionFailed]
+	builder.adapter :async_http
+end
+~~~
+
+Async HTTP already retries eligible failures before returning a response. Faraday retries encompass response-body consumption as well, and can repeat requests after the internal attempts have been exhausted. Each Faraday attempt may therefore involve several underlying attempts; configure retry limits and an overall deadline accordingly.
+
+Idempotency alone is not sufficient for requests with bodies, such as `PUT`: the body must also be replayable. Do not assume that `faraday-retry` rewinds arbitrary IO or streaming bodies. Ensure that the complete request body is restored before each attempt. When streaming response chunks to a callback, ensure that partial output can be discarded or that repeated chunks can be handled safely before enabling retries.

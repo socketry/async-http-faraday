@@ -269,39 +269,51 @@ describe Async::HTTP::Faraday::Adapter do
 		end
 	end
 	
-	with "a remote failure" do
-		it "can retry using Faraday middleware" do
-			attempts = 0
-			client = Object.new
-			client.define_singleton_method(:call) do |request|
-				attempts += 1
-				
-				if attempts == 1
-					body = Protocol::HTTP::Body::Writable.new
-					body.close_write(Protocol::HTTP::RemoteError.new("The remote endpoint failed!"))
-					Protocol::HTTP::Response[200, {}, body]
-				else
-					Protocol::HTTP::Response[200, {}, ["Hello World"]]
+	[
+		Protocol::HTTP::RemoteError.new("The remote endpoint failed!"),
+		Protocol::HTTP2::StreamError.for(Protocol::HTTP2::Error::INTERNAL_ERROR),
+		Protocol::HTTP2::StreamError.for(Protocol::HTTP2::Error::CANCEL),
+	].each do |error|
+		with "#{error.class}: #{error.message}", unique: error.message do
+			it "can retry using Faraday middleware while preserving the cause" do
+				attempts = 0
+				failures = []
+				client = Object.new
+				client.define_singleton_method(:call) do |request|
+					attempts += 1
+					
+					if attempts == 1
+						body = Protocol::HTTP::Body::Writable.new
+						body.close_write(error)
+						Protocol::HTTP::Response[200, {}, body]
+					else
+						Protocol::HTTP::Response[200, {}, ["Hello World"]]
+					end
 				end
+				
+				clients = Object.new
+				clients.define_singleton_method(:with_client) do |endpoint, &block|
+					block.call(client)
+				end
+				clients.define_singleton_method(:close){}
+				
+				connection = Faraday.new("https://example.com") do |builder|
+					builder.request :retry, max: 1, exceptions: [Faraday::ConnectionFailed],
+						retry_block: proc{|exception:, **| failures << exception}
+					builder.adapter :async_http, clients: proc{clients}
+				end
+				
+				response = connection.get("/")
+				
+				expect(response.body).to be == "Hello World"
+				expect(attempts).to be == 2
+				expect(failures.size).to be == 1
+				expect(failures.first).to be_a(Faraday::ConnectionFailed).and(
+					have_attributes(cause: be_equal(error))
+				)
+			ensure
+				connection&.close
 			end
-			
-			clients = Object.new
-			clients.define_singleton_method(:with_client) do |endpoint, &block|
-				block.call(client)
-			end
-			clients.define_singleton_method(:close){}
-			
-			connection = Faraday.new("https://example.com") do |builder|
-				builder.request :retry, max: 1, exceptions: [Faraday::ConnectionFailed]
-				builder.adapter :async_http, clients: proc{clients}
-			end
-			
-			response = connection.get("/")
-			
-			expect(response.body).to be == "Hello World"
-			expect(attempts).to be == 2
-		ensure
-			connection&.close
 		end
 	end
 	
