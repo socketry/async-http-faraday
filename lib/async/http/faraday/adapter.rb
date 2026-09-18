@@ -20,6 +20,8 @@ require "kernel/sync"
 require "async/http/client"
 require "async/http/proxy"
 
+require "protocol/http/error"
+
 require_relative "clients"
 
 module Async
@@ -105,6 +107,7 @@ module Async
 				
 				# The exceptions that are considered connection errors and result in a `Faraday::ConnectionFailed` exception.
 				CONNECTION_EXCEPTIONS = [
+					::Protocol::HTTP::Error,
 					Errno::EADDRNOTAVAIL,
 					Errno::ECONNABORTED,
 					Errno::ECONNREFUSED,
